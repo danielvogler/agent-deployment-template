@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "prod"
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  deploy:
+    name: Deploy to Agent Engine
+    runs-on: ubuntu-latest
+    environment: {% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: {% raw %}${{ secrets.GCP_SA_KEY }}{% endraw %}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "{{cookiecutter.python_version}}"
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          ignore-nothing-to-cache: true
+
+      - run: uv sync
+
+      - name: Deploy
+        run: uv run python deployment/deploy.py --env {% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}
+        env:
+          GOOGLE_CLOUD_PROJECT: {% raw %}${{ secrets.GOOGLE_CLOUD_PROJECT }}{% endraw %}
+          GOOGLE_CLOUD_LOCATION: {% raw %}${{ vars.GOOGLE_CLOUD_LOCATION }}{% endraw %}
+          GCS_STAGING_BUCKET: {% raw %}${{ secrets.GCS_STAGING_BUCKET }}{% endraw %}
+          AGENT_ENGINE_RESOURCE_NAME: {% raw %}${{ vars.AGENT_ENGINE_RESOURCE_NAME }}{% endraw %}
+          MODEL_PROVIDER: {% raw %}${{ vars.MODEL_PROVIDER || 'google' }}{% endraw %}
+
+      - name: Write deployment summary
+        if: success()
+        run: |
+          echo "## Deployment successful" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Environment:** {% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Resource:**" >> "$GITHUB_STEP_SUMMARY"
+          cat .agent_engine_resource >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "N/A" >> "$GITHUB_STEP_SUMMARY"

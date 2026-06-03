@@ -1,0 +1,34 @@
+[project]
+name = "agent-deployment-template"
+version = "0.1.0"
+description = "Cookiecutter template for Google ADK agent deployment on Vertex AI Agent Engine"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ruff>=0.4.0",
+    "pyright>=1.1.0",
+    "pre-commit>=3.7.0",
+    "commitizen>=3.0.0",
+    "cookiecutter>=2.6.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+include = ["hooks"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_scheme = "semver"
+tag_format = "v$version"
+update_changelog_on_bump = true
+changelog_incremental = true

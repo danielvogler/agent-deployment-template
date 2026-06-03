@@ -1,0 +1,57 @@
+name: Validate Template
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  generate-and-test:
+    name: Generate project and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          ignore-nothing-to-cache: true
+
+      - name: Install cookiecutter
+        run: pip install cookiecutter
+
+      - name: Generate project from template
+        run: |
+          cookiecutter . --no-input \
+            --output-dir /tmp/cc-test \
+            project_name="Test Agent" \
+            author_email="test@example.com" \
+            gcp_project_id="test-project-123"
+
+      - name: List generated project
+        run: ls -la /tmp/cc-test/test-agent/
+
+      - name: Install generated project dependencies
+        run: uv sync
+        working-directory: /tmp/cc-test/test-agent
+
+      - name: Lint generated project
+        run: uv run ruff check .
+        working-directory: /tmp/cc-test/test-agent
+
+      - name: Type check generated project
+        run: uv run pyright
+        working-directory: /tmp/cc-test/test-agent
+
+      - name: Run unit tests (no GCP required)
+        run: uv run pytest tests/unit -v --no-cov
+        working-directory: /tmp/cc-test/test-agent
+        env:
+          PYTHONPATH: /tmp/cc-test/test-agent
