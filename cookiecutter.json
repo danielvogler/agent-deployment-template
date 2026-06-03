@@ -1,0 +1,13 @@
+{
+  "project_name": "My ADK Agent",
+  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "project_description": "A Google ADK agent deployed on Vertex AI Agent Engine",
+  "author_name": "Your Name",
+  "author_email": "your@email.com",
+  "github_org": "your-org",
+  "gcp_project_id": "my-gcp-project",
+  "gcp_location": ["europe-west1", "us-central1"],
+  "model_provider": ["google", "anthropic", "openai", "litellm"],
+  "python_version": ["3.11", "3.12"],
+  "open_source_license": ["MIT", "Apache-2.0", "Proprietary"]
+}

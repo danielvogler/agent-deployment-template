@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-template:
+    name: Lint template repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          ignore-nothing-to-cache: true
+
+      - run: uv sync
+
+      - name: Lint hooks/
+        run: uv run ruff check hooks/
+
+      - name: Format check hooks/
+        run: uv run ruff format --check hooks/
+
+      - name: Type check hooks/
+        run: uv run pyright hooks/
+
+      - name: Validate cookiecutter.json
+        run: python3 -c "import json; json.load(open('cookiecutter.json')); print('cookiecutter.json is valid JSON')"
+
+      - name: Lint markdown
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: "**/*.md"
+          config: .markdownlint.json
+        continue-on-error: true
