@@ -1,6 +1,9 @@
 .PHONY: install dev lint format typecheck test test-unit eval \
         deploy-dev deploy-prod logs traces setup-gcp pre-commit clean help
 
+-include .env
+export
+
 help:
 	@echo ""
 	@echo "{{cookiecutter.project_name}} — available targets"
