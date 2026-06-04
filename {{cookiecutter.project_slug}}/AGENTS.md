@@ -114,7 +114,7 @@ Set `MODEL_PROVIDER` in `.env`:
 
 | Value | Model |
 |---|---|
-| `google` (default) | Gemini 2.0 Flash |
+| `google` (default) | Gemini 2.5 Pro |
 | `anthropic` | Claude Opus 4.8 via LiteLLM |
 | `openai` | GPT-4o via LiteLLM |
 | `litellm` | Any model — set `LITELLM_MODEL` |

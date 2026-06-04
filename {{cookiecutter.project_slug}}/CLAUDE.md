@@ -126,7 +126,7 @@ Set `MODEL_PROVIDER` in `.env`:
 
 | Value | Model | Requires |
 |---|---|---|
-| `google` (default) | Gemini 2.0 Flash | `GOOGLE_API_KEY` (local) or ADC (GCP) |
+| `google` (default) | Gemini 2.5 Pro | `GOOGLE_API_KEY` (local) or ADC (GCP) |
 | `anthropic` | Claude Opus 4.8 via LiteLLM | `ANTHROPIC_API_KEY` |
 | `openai` | GPT-4o via LiteLLM | `OPENAI_API_KEY` |
 | `litellm` | Set `LITELLM_MODEL` | depends on model |
