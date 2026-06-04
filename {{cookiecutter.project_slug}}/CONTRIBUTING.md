@@ -29,7 +29,7 @@ See [CLAUDE.md](CLAUDE.md) for the full project reference (also read by AI assis
 
 Format: `type(scope): description`
 
-```
+```bash
 feat(agent): add calendar lookup tool
 fix(prompts): correct safety refusal wording
 chore(deps): bump google-adk to 1.2.0
