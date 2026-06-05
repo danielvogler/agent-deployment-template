@@ -26,7 +26,7 @@ make setup-gcp                # creates service account, bucket, prints GitHub s
 
 ## Project structure
 
-```
+```text
 agent/
   __init__.py         load_prompt() — reads prompts/prompts.yaml and concatenates .md files
   agent.py            root_agent (ADK Agent, no custom classes)
@@ -114,7 +114,7 @@ Set `MODEL_PROVIDER` in `.env`:
 
 | Value | Model |
 |---|---|
-| `google` (default) | Gemini 2.0 Flash |
+| `google` (default) | Gemini 2.5 Pro |
 | `anthropic` | Claude Opus 4.8 via LiteLLM |
 | `openai` | GPT-4o via LiteLLM |
 | `litellm` | Any model — set `LITELLM_MODEL` |
@@ -136,5 +136,5 @@ Set `MODEL_PROVIDER` in `.env`:
 | `eval.yml` | PR to main | promptfoo red-team (90% pass threshold) |
 | `deploy.yml` | push to main | deploy to Agent Engine prod |
 
-Required GitHub Secrets: `GCP_SA_KEY`, `GOOGLE_CLOUD_PROJECT`, `GCS_STAGING_BUCKET`, `GOOGLE_API_KEY`
+Required GitHub Secrets: `GCP_SA_KEY`, `GOOGLE_CLOUD_PROJECT`, `GCS_STAGING_BUCKET`, `GOOGLE_API_KEY`  # pragma: allowlist secret
 Required GitHub Variables: `GOOGLE_CLOUD_LOCATION`, `MODEL_PROVIDER`, `AGENT_ENGINE_RESOURCE_NAME` (after first deploy)

@@ -34,7 +34,7 @@ make setup-gcp   # creates SA, enables APIs, generates key for CI
 
 ## Project layout
 
-```
+```text
 agent/
   __init__.py          load_prompt() — reads prompts/prompts.yaml and concatenates .md files
   agent.py             root_agent definition (ADK syntax; this is the entrypoint)
@@ -126,7 +126,7 @@ Set `MODEL_PROVIDER` in `.env`:
 
 | Value | Model | Requires |
 |---|---|---|
-| `google` (default) | Gemini 2.0 Flash | `GOOGLE_API_KEY` (local) or ADC (GCP) |
+| `google` (default) | Gemini 2.5 Pro | `GOOGLE_API_KEY` (local) or ADC (GCP) |
 | `anthropic` | Claude Opus 4.8 via LiteLLM | `ANTHROPIC_API_KEY` |
 | `openai` | GPT-4o via LiteLLM | `OPENAI_API_KEY` |
 | `litellm` | Set `LITELLM_MODEL` | depends on model |
@@ -161,7 +161,7 @@ make pre-commit   # runs all hooks
 
 Format: `type(scope): description`
 
-```
+```text
 feat(agent): add calendar lookup tool
 fix(prompts): correct safety guidelines for PII handling
 chore(deps): bump google-adk to 1.1.0
@@ -205,5 +205,5 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
 | `eval.yml` | PR to main | promptfoo red-team (90% pass threshold) |
 | `deploy.yml` | push to main | deploys to Agent Engine prod |
 
-Required GitHub Secrets: `GCP_SA_KEY`, `GOOGLE_CLOUD_PROJECT`, `GCS_STAGING_BUCKET`, `GOOGLE_API_KEY`
+Required GitHub Secrets: `GCP_SA_KEY`, `GOOGLE_CLOUD_PROJECT`, `GCS_STAGING_BUCKET`, `GOOGLE_API_KEY`  # pragma: allowlist secret
 Required GitHub Variables: `GOOGLE_CLOUD_LOCATION`, `MODEL_PROVIDER`, `AGENT_ENGINE_RESOURCE_NAME` (after first deploy)

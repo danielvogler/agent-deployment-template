@@ -25,7 +25,7 @@ flowchart TD
     subgraph gcp["Google Cloud Platform"]
         DEPLOY --> ENGINE[Vertex AI Agent Engine]
         ENGINE --> MODEL{MODEL_PROVIDER}
-        MODEL --> G[Gemini 2.0 Flash]
+        MODEL --> G[Gemini 2.5 Pro]
         MODEL --> CL[Claude via LiteLLM]
         MODEL --> OAI[GPT-4o via LiteLLM]
         ENGINE --> LOG[Cloud Logging]
@@ -102,7 +102,7 @@ Set `MODEL_PROVIDER` in `.env`:
 
 | Value | Model |
 |---|---|
-| `google` (default) | Gemini 2.0 Flash |
+| `google` (default) | Gemini 2.5 Pro |
 | `anthropic` | Claude Opus 4.8 via LiteLLM |
 | `openai` | GPT-4o via LiteLLM |
 | `litellm` | Any model — set `LITELLM_MODEL` |

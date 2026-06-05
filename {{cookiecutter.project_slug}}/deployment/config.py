@@ -10,7 +10,7 @@ def resolve_model():
     """Return the ADK-compatible model handle based on MODEL_PROVIDER env var.
 
     Supported values for MODEL_PROVIDER:
-      google    (default) — Gemini 2.0 Flash via native ADK
+      google    (default) — Gemini 2.5 Pro via native ADK
       anthropic           — Claude via LiteLLM
       openai              — GPT-4o via LiteLLM
       litellm             — any model; set LITELLM_MODEL to the full model string
@@ -18,7 +18,7 @@ def resolve_model():
     provider = os.getenv("MODEL_PROVIDER", "google").lower()
 
     if provider == "google":
-        return "gemini-2.0-flash"
+        return "gemini-2.5-pro"
 
     from google.adk.models.lite_llm import LiteLlm  # noqa: PLC0415
 
