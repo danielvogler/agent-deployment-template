@@ -14,10 +14,10 @@ We aim to respond within 5 business days and to release a fix within 30 days for
 Issues we consider in scope:
 
 - **Prompt injection** — external content causing the agent to deviate from its instructions
-- **PII leakage** — the agent repeating or storing user-provided personal data
+- **Personally Idenifiable Information (PII) leakage** — the agent repeating or storing user-provided personal data
 - **System prompt exfiltration** — the agent revealing its system prompt verbatim
 - **Credential exposure** — secrets committed to the repository or leaked in logs
-- **Dependency CVEs** — HIGH or CRITICAL severity vulnerabilities in pinned dependencies
+- **Dependency Common Vulnerabilities and Exposures (CVEs)** — HIGH or CRITICAL severity vulnerabilities in pinned dependencies
 
 ## Prompt security
 

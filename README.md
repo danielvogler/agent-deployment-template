@@ -23,7 +23,7 @@ Running `cookiecutter` against this template generates a fully configured Python
 - [uv](https://docs.astral.sh/uv/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Node.js 20+ (for promptfoo)
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) (for deployment)
-- cookiecutter — `pip install cookiecutter`
+- cookiecutter — `python3 -m pip install --user cookiecutter` or `brew install cookiecutter`
 
 ## Quickstart
 
