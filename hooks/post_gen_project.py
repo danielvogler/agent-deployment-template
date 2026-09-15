@@ -101,9 +101,38 @@ def get_template_commit() -> str:
 
 
 def write_cruft_json() -> None:
+    """Write .cruft.json, or skip it when the template commit cannot be determined.
+
+    Cookiecutter chdirs into the generated project before running this hook, so a
+    relative `_repo_dir` -- what `cookiecutter .` passes, which is exactly what
+    `make validate` runs -- no longer resolves to the template. `git rev-parse` then
+    returns nothing and the file gets `"commit": ""`, which makes a later
+    `cruft check` die with `BadName: Ref '' did not resolve to an object` rather than
+    reporting drift. A relative `"template"` is equally useless to `cruft update`,
+    which runs from the generated project, not from where cookiecutter was invoked.
+
+    So: write the file only when it would actually work, and say so when it would not.
+    Generating from a URL or an absolute path -- the documented paths -- is unaffected.
+    """
+    commit = get_template_commit()
+    template_is_usable = bool(TEMPLATE_URL) and (
+        "://" in TEMPLATE_URL
+        or TEMPLATE_URL.startswith(("gh:", "gl:", "bb:", "git@"))
+        or os.path.isabs(TEMPLATE_URL)
+    )
+    if not commit or not template_is_usable:
+        print(
+            "\nNOTE: skipping .cruft.json — the template was generated from a\n"
+            "relative path, which cruft cannot resolve later. Template update\n"
+            "tracking is off.\n"
+            "To enable it, regenerate from a URL or an absolute path, or run:\n"
+            "  cruft link <template-url>"
+        )
+        return
+
     cruft_config = {
         "template": TEMPLATE_URL,
-        "commit": get_template_commit(),
+        "commit": commit,
         "checkout": TEMPLATE_CHECKOUT
         if TEMPLATE_CHECKOUT not in ("", "None")
         else None,
