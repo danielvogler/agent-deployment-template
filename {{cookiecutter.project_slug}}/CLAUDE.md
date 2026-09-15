@@ -16,7 +16,11 @@ make install
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env — fill in at minimum: GOOGLE_CLOUD_PROJECT, GOOGLE_API_KEY (for local dev)
+# Edit .env — fill in at minimum: GOOGLE_CLOUD_PROJECT.
+# For the model, pick one:
+#   - GOOGLE_GENAI_USE_VERTEXAI=TRUE (the default in .env.example) and run
+#     `gcloud auth application-default login` — no API key needed
+#   - or unset it and supply GOOGLE_API_KEY from AI Studio
 
 # 3. Install pre-commit hooks
 uv run pre-commit install
@@ -235,7 +239,8 @@ Set `MODEL_PROVIDER` in `.env`:
 | `LITELLM_MODEL` | If provider=litellm | — | Full LiteLLM model string |
 | `ANTHROPIC_API_KEY` | If provider=anthropic | — | |
 | `OPENAI_API_KEY` | If provider=openai | — | |
-| `GOOGLE_API_KEY` | Local dev | — | Not needed on GCP (uses ADC) |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Local dev on ADC | — | `TRUE` routes Gemini through Vertex AI and ADC. Without it google-genai uses the AI Studio backend and demands `GOOGLE_API_KEY`, even when ADC is valid |
+| `GOOGLE_API_KEY` | Local dev | — | Only when `GOOGLE_GENAI_USE_VERTEXAI` is unset or `FALSE`. Not needed on GCP (uses ADC) |
 | `SERPAPI_API_KEY` | No | — | Enables live web search; omit for stub |
 
 ## Pre-commit (required — always fix before committing)
