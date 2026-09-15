@@ -41,6 +41,41 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ### Fixed
 
+- **`.env.example` was never committed into generated projects.** The generated `.gitignore`
+  excludes `.env.*`, which also matches `.env.example`, so the post-gen initial commit left it
+  untracked and anyone cloning the generated repository found no file to copy — while both
+  `README.md` and `CLAUDE.md` open their setup with `cp .env.example .env`.
+
+- **Generated projects ignored their chosen Python version.** `requires-python` set only a floor,
+  so `uv sync` selected the newest interpreter installed: all eight cookiecutter variants,
+  `python_version=3.12` included, resolved to Python 3.14. CI pinned the chosen version, so local
+  and CI ran different interpreters, and because Agent Engine takes the runtime Python from the
+  deploying machine's `sys.version`, the deployed container depended on who deployed it. A
+  `.python-version` file now pins it.
+
+- **Local development could not use Application Default Credentials.** The docs said
+  `GOOGLE_API_KEY` was "not needed on GCP (uses ADC)", but nothing set
+  `GOOGLE_GENAI_USE_VERTEXAI`, so google-genai used the AI Studio backend and a run with valid
+  ADC failed with `ValueError: No API key was provided.` The variable now defaults to `TRUE` in
+  `.env.example` and is documented.
+
+- **`read_traces.py` failed outside `make`.** It read `GOOGLE_CLOUD_PROJECT` from the environment
+  only, then reported "Set GOOGLE_CLOUD_PROJECT in .env" — naming a file it never read. `make
+  traces` worked because the Makefile exports `.env` itself, but `read_traces.py --spans`, the
+  documented way to expand child spans, always failed.
+
+- **`.cruft.json` could be written with an empty commit.** Cookiecutter chdirs into the generated
+  project before the post-gen hook runs, so a relative `_repo_dir` — what `cookiecutter .` passes
+  — no longer resolved to the template and `git rev-parse` returned nothing. A later `cruft check`
+  then aborted with `BadName: Ref '' did not resolve to an object` rather than reporting drift.
+  The file is now written only when the template reference is actually usable.
+
+- **`setup_gcp.sh` printed the service-account private key to stdout.** The base64 key for the
+  shared service account landed in terminal scrollback, shell history and any captured log. The
+  script now prints a `gh secret set` pipe that never renders the value, followed by server-side
+  revocation — `rm` alone leaves the key valid — and warns that re-running mints another key
+  while revoking none.
+
 - **`make logs` and `make traces` queried the wrong things, and tracing never worked at all.**
   `read_logs.sh` filtered on `resource.type="aiplatform.googleapis.com/Endpoint"`, which is not
   what an Agent Engine deployment uses. The real destination — confirmed against a live
