@@ -38,7 +38,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 # `make traces` works without this because the Makefile does `-include .env; export`,
-# but CLAUDE.md documents `read_traces.py --spans` as the way to expand child spans and
+# but AGENTS.md documents `read_traces.py --spans` as the way to expand child spans and
 # that path gets no .env at all -- it failed with "Set GOOGLE_CLOUD_PROJECT in .env",
 # which is exactly where the value already was. deployment/config.py loads it the same
 # way; this script does not import config, so it has to do it itself.

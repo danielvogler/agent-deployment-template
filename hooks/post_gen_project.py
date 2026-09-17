@@ -207,6 +207,6 @@ Next steps:
   6. make setup-gcp    # one-time GCP bootstrap (when ready to deploy)
   7. make deploy-dev   # deploy to Agent Engine (dev)
 
-See README.md and CLAUDE.md for full documentation.
+See README.md and AGENTS.md for full documentation.
 """
 )

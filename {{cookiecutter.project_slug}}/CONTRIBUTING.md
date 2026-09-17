@@ -12,7 +12,7 @@ uv run pre-commit install --hook-type commit-msg
 make dev
 ```
 
-See [CLAUDE.md](CLAUDE.md) for the full project reference (also read by AI assistants).
+See [AGENTS.md](AGENTS.md) for the full project reference (also read by AI assistants).
 
 ## Branch naming
 

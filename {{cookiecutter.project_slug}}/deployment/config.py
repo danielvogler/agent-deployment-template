@@ -111,7 +111,7 @@ class DeploymentConfig:
             # The identity the deployed agent runs as. Always set, so the agent runs
             # as the SA setup_gcp.sh provisions rather than silently falling back to
             # the shared Reasoning Engine Service Agent. See "Runtime identity" in
-            # CLAUDE.md for the actAs permission this requires.
+            # AGENTS.md for the actAs permission this requires.
             service_account=service_account or default_service_account(project),
         )
 
