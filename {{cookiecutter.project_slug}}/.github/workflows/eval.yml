@@ -42,9 +42,17 @@ jobs:
         # `ModuleNotFoundError: No module named 'dotenv'`. `make eval`'s local path
         # (tests/evals/run_eval.py, invoked via `uv run python ...`) never hit this because
         # `uv run` already activates .venv for the whole subprocess tree it spawns.
-        run: uv run npx --yes promptfoo@latest eval --config tests/evals/promptfoo.yaml --no-progress-bar -o output.json
+        run: uv run npx --yes promptfoo@latest eval --config tests/evals/promptfoo.yaml --no-progress-bar -j 2 -o output.json
         env:
           PROMPTFOO_DISABLE_TELEMETRY: "1"
+          # The ADK's OpenTelemetry instrumentation detaches a context token from a
+          # different context than the one it was created in when driven from
+          # promptfoo's async python worker, which raises
+          # `ValueError: <Token ...> was created in a different Context` and can wedge
+          # the worker until it hits promptfoo's 300s timeout. tests/evals/run_eval.py
+          # already sets this for the local path; CI was missing it, so the eval was
+          # flaky here and nowhere else.
+          OTEL_SDK_DISABLED: "true"
           MODEL_PROVIDER: google
           GOOGLE_API_KEY: "{% raw %}${{ secrets.GOOGLE_API_KEY }}{% endraw %}"
 
