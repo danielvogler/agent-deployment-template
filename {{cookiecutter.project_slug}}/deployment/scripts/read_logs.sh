@@ -5,20 +5,12 @@
 #   SINCE  gcloud --freshness value, e.g. 1h, 30m, 2d  (default: 1h)
 #   LIMIT  maximum entries to return                   (default: 200)
 #
-# Agent Engine forwards container stdout/stderr to Cloud Logging under these two log
-# names, shared by every reasoning engine in the project:
+# Reads the two reasoning_engine log names Agent Engine writes container output to.
+# They are shared by every engine in the project, so the query is scoped by
+# reasoning_engine_id rather than by agent_name, which is "root_agent" everywhere.
 #
-#   aiplatform.googleapis.com/reasoning_engine_stdout
-#   aiplatform.googleapis.com/reasoning_engine_stderr
-#
-# They carry this agent's @instrument and log_event JSON lines as well as the ADK and
-# platform logging around them. Because the log names are shared, the query is scoped by
-# reasoning_engine_id -- this template expects several agents per GCP project, and
-# jsonPayload.agent_name is "root_agent" in all of them, so it cannot tell them apart.
-#
-# Seeing nothing at all, from any agent? Check the project's log sink before anything
-# else -- a disabled _Default sink silently discards every non-audit entry:
-#   gcloud logging sinks describe _Default --project=$GOOGLE_CLOUD_PROJECT
+# Nothing returned, from any agent? See "Observability" in AGENTS.md -- a disabled
+# _Default sink is the usual cause and looks exactly like broken instrumentation.
 set -euo pipefail
 
 PROJECT="${GOOGLE_CLOUD_PROJECT:?Set GOOGLE_CLOUD_PROJECT in .env}"

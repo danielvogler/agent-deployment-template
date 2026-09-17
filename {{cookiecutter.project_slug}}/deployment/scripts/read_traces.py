@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 """List this agent's Cloud Trace traces.
 
-Every `@instrument`ed tool call becomes a span named after the function, exported
-by `agent/observability.py` when `CLOUD_TRACE_ENABLED` is set -- which
-`deployment/deploy.py` does on the deployed resource.
-
-Those tool spans are **child** spans: ADK wraps each request in an
-`invoke_workflow` root span, so the default listing (root spans only, one line per
-trace) will not show them. Use `--spans` to expand each trace, or `--filter` to
-select traces by a child span's name.
+Tool spans are children of ADK's `invoke_workflow` root span, so the default
+listing shows roots only -- pass `--spans` to expand them. See "Observability" in
+AGENTS.md.
 
 Usage:
     uv run python deployment/scripts/read_traces.py
@@ -17,13 +12,8 @@ Usage:
     uv run python deployment/scripts/read_traces.py --filter "span:web_search"
 
 `gcloud` has no `trace` command group, so this calls the Cloud Trace v1 REST API
-with Application Default Credentials. Note that ADC is a separate credential store
-from the gcloud CLI login: `gcloud auth application-default login` is what
-refreshes it.
-
-The default is unfiltered because this template expects several agents per GCP
-project and Cloud Trace has no reliable per-agent label to filter on -- pass
-`--filter "span:<tool_name>"` to narrow to one tool's calls.
+with Application Default Credentials. Unfiltered by default: Cloud Trace has no
+per-agent label, so narrow with `--filter "span:<tool_name>"`.
 """
 
 from __future__ import annotations
@@ -37,11 +27,8 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-# `make traces` works without this because the Makefile does `-include .env; export`,
-# but AGENTS.md documents `read_traces.py --spans` as the way to expand child spans and
-# that path gets no .env at all -- it failed with "Set GOOGLE_CLOUD_PROJECT in .env",
-# which is exactly where the value already was. deployment/config.py loads it the same
-# way; this script does not import config, so it has to do it itself.
+# Needed when run directly: only `make traces` exports .env, and this script does not
+# import deployment/config.py, which is where load_dotenv() otherwise happens.
 load_dotenv()
 
 TRACE_API = "https://cloudtrace.googleapis.com/v1/projects/{project}/traces"

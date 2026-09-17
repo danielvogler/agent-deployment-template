@@ -3,31 +3,11 @@
 `instrument` wraps `agent/tools/*` functions -- the boundary this project actually
 controls. Agent Engine's managed runtime drives the ADK `Runner` internally, so a
 decorator on `Runner.run_async` would never fire in production; tool calls are invoked
-by our own code regardless of where the agent runs, so that's the choke point used here.
+by our own code regardless of where the agent runs.
 
-Destinations
-------------
-**Logs go to stdout, and that is sufficient.** Agent Engine forwards container
-stdout/stderr to Cloud Logging under the log names
-`aiplatform.googleapis.com/reasoning_engine_stdout` and `..._stderr` -- verified against
-a live deployment, where the JSON lines below arrived intact with no client library
-involved. `read_logs.sh` reads exactly those.
-
-A previous revision of this file also attached `CloudLoggingHandler`, on the belief that
-stdout was *not* forwarded. That belief came from a deployment where no application logs
-appeared at all -- which turned out to be a disabled `_Default` log sink in the GCP
-project, discarding every non-audit entry regardless of how it was written. With the sink
-enabled, every event arrived twice: once via stdout and once via the API handler. The
-handler was removed as redundant. If logs ever appear to vanish again, check
-`gcloud logging sinks describe _Default` before changing anything here.
-
-Traces are different: nothing forwards them, so `CLOUD_TRACE_ENABLED` configures an
-OpenTelemetry exporter that writes to Cloud Trace directly, and every `@instrument`ed
-call becomes a span. It is off by default so a local `make dev` never writes to a real
-project; `deployment/deploy.py` turns it on for the deployed agent, and passes
-`OTEL_EXPORTER_GCP_TRACE_PROJECT_ID` alongside it -- the exporter otherwise falls back to
-`google.auth.default()`, which inside the Agent Engine container resolves no project and
-fails every export with `INVALID_ARGUMENT: Invalid project id in name!`.
+Logs go to stdout and need no client library; traces need an exporter and two
+environment variables. "Observability" in AGENTS.md explains why, and is the first
+place to look when logs or spans appear to be missing.
 
 Telemetry must never break a tool call: if a library is missing or credentials cannot be
 resolved, the failure is reported once on stderr and the tool runs on.

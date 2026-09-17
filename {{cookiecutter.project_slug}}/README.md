@@ -186,29 +186,17 @@ make traces   # list this agent's Cloud Trace spans
 ```
 
 `agent/observability.py` emits structured JSON events (tool calls, token usage) via
-`log_event`/`@instrument`, and a Cloud Trace span per instrumented call.
+`log_event`/`@instrument`, and a Cloud Trace span per instrumented call. Logs need no setup;
+tracing is enabled on the deployed agent and off locally, so `make dev` just prints to stdout.
 
-Logs need no setup: Agent Engine forwards container stdout to Cloud Logging under
-`aiplatform.googleapis.com/reasoning_engine_stdout`, parsing each JSON line into a structured
-`jsonPayload`. Tracing does — `deployment/deploy.py` enables it on the deployed agent via
-`CLOUD_TRACE_ENABLED` and `OTEL_EXPORTER_GCP_TRACE_PROJECT_ID`. It is off by default locally, so
-`make dev` just prints to stdout.
-
-**If logs seem missing, check the project's log sink before suspecting the agent.** A disabled
-`_Default` sink discards every non-audit entry regardless of how it was written:
-
-```bash
-gcloud logging sinks describe _Default --project=$GOOGLE_CLOUD_PROJECT
-```
-
-See [Observability](AGENTS.md#observability) in `AGENTS.md` for the field reference.
+See [Observability](AGENTS.md#observability) in `AGENTS.md` for the field reference, the two
+variables tracing needs, and what to check first when logs appear to be missing.
 
 ### Cloud Logging query examples
 
 Run these in [Logs Explorer](https://console.cloud.google.com/logs) or via `gcloud logging read`.
-Agent Engine writes every reasoning engine's output to a shared pair of log names, so scope by
-`reasoning_engine_id` to isolate one agent — `jsonPayload.agent_name` is `root_agent` in every
-project generated from this template and cannot tell them apart:
+Scope by `reasoning_engine_id` to isolate one agent — the log names are shared by every engine
+in the project, and `jsonPayload.agent_name` is `root_agent` in all of them:
 
 ```bash
 ENGINE_ID=$(cat .agent_engine_resource | sed 's#.*/##')

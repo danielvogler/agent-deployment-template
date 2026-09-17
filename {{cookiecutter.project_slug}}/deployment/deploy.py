@@ -59,23 +59,16 @@ def deploy(env: str) -> None:
         "pyyaml>=6.0",
     ]
 
-    # Local source that must be importable on the remote container. The pickled
-    # agent references agent.tools.* by module path, so the package has to ship
-    # alongside it (the prompts dir travels too for any runtime reads).
+    # The pickled agent references agent.tools.* by module path, so the package has
+    # to ship alongside it; prompts travels too, for runtime reads.
     extra_packages = ["agent", "prompts"]
 
-    # `env_vars` is declared by the SDK as Dict[str, str | SecretRef]. A plain
-    # dict[str, str] is not assignable to it because a dict's value type is
-    # invariant, so pyright rejects the call even though every value we pass is a
-    # str. The cast states the intent without widening runtime_env_vars itself,
-    # which keeps deployment/config.py free of any SDK import.
+    # dict value types are invariant, so dict[str, str] will not satisfy the SDK's
+    # Dict[str, str | SecretRef]. Cast rather than widen, to keep config.py SDK-free.
     env_vars = cast("dict[str, str | SecretRef]", config.runtime_env_vars)
 
-    # `service_account` is what makes the agent run as the identity setup_gcp.sh
-    # provisions -- omit it and Vertex silently falls back to the shared Reasoning
-    # Engine Service Agent, leaving that SA's IAM grants unused at runtime. Always
-    # sent, on create and update alike; DeploymentConfig derives it from the project
-    # when AGENT_ENGINE_SERVICE_ACCOUNT is not set.
+    # service_account is sent on create and update alike; omitting it falls back to
+    # the shared service agent. See "Runtime identity" in AGENTS.md.
     if config.resource_name:
         logger.info("  Updating: %s", config.resource_name)
         existing = agent_engines.get(config.resource_name)
