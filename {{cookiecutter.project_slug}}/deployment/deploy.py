@@ -5,10 +5,20 @@ Usage:
     uv run python deployment/deploy.py --env dev
     uv run python deployment/deploy.py --env prod
 """
+
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from google.cloud.aiplatform_v1.types import SecretRef
+
+# Ensure the project root is on the path when run as a script
+# (python deployment/deploy.py puts deployment/ on sys.path, not the root).
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -27,29 +37,66 @@ def deploy(env: str) -> None:
     logger.info("  Project:  %s", config.project)
     logger.info("  Location: %s", config.location)
     logger.info("  Bucket:   %s", config.staging_bucket)
+    logger.info("  Runtime SA: %s", config.service_account)
 
-    vertexai.init(project=config.project, location=config.location)
+    vertexai.init(
+        project=config.project,
+        location=config.location,
+        staging_bucket=config.staging_bucket,
+    )
 
+    # Must stay in step with [project].dependencies in pyproject.toml: this is the
+    # list installed in the remote container, and a package missing here is an
+    # ImportError at runtime rather than a deploy-time failure.
     requirements = [
         "google-adk>=1.0.0",
         "google-cloud-aiplatform[agent_engines]>=1.90.0",
+        "opentelemetry-sdk>=1.20.0",
+        "opentelemetry-exporter-gcp-trace>=1.6.0",
         "litellm>=1.50.0",
         "pydantic>=2.0.0",
         "python-dotenv>=1.0.0",
         "pyyaml>=6.0",
     ]
 
+    # Local source that must be importable on the remote container. The pickled
+    # agent references agent.tools.* by module path, so the package has to ship
+    # alongside it (the prompts dir travels too for any runtime reads).
+    extra_packages = ["agent", "prompts"]
+
+    # `env_vars` is declared by the SDK as Dict[str, str | SecretRef]. A plain
+    # dict[str, str] is not assignable to it because a dict's value type is
+    # invariant, so pyright rejects the call even though every value we pass is a
+    # str. The cast states the intent without widening runtime_env_vars itself,
+    # which keeps deployment/config.py free of any SDK import.
+    env_vars = cast("dict[str, str | SecretRef]", config.runtime_env_vars)
+
+    # `service_account` is what makes the agent run as the identity setup_gcp.sh
+    # provisions -- omit it and Vertex silently falls back to the shared Reasoning
+    # Engine Service Agent, leaving that SA's IAM grants unused at runtime. Always
+    # sent, on create and update alike; DeploymentConfig derives it from the project
+    # when AGENT_ENGINE_SERVICE_ACCOUNT is not set.
     if config.resource_name:
         logger.info("  Updating: %s", config.resource_name)
         existing = agent_engines.get(config.resource_name)
-        remote_agent = existing.update(agent_engine=root_agent, requirements=requirements)
+        remote_agent = existing.update(
+            agent_engine=root_agent,
+            requirements=requirements,
+            extra_packages=extra_packages,
+            gcs_dir_name=config.gcs_dir_name,
+            env_vars=env_vars,
+            service_account=config.service_account,
+        )
     else:
         logger.info("  Creating new Agent Engine resource...")
         remote_agent = agent_engines.create(
             agent_engine=root_agent,
             requirements=requirements,
             display_name=config.agent_display_name,
-            gcs_dir_name=config.staging_bucket,
+            gcs_dir_name=config.gcs_dir_name,
+            extra_packages=extra_packages,
+            env_vars=env_vars,
+            service_account=config.service_account,
         )
 
     resource_name = remote_agent.resource_name
@@ -57,19 +104,20 @@ def deploy(env: str) -> None:
 
     Path(".agent_engine_resource").write_text(resource_name + "\n")
 
+    from deployment.scripts.health_check import run_smoke_test
+
     logger.info("Running smoke test...")
-    response = remote_agent.query(input="ping")  # type: ignore[attr-defined]
-    if not response:
-        logger.error("Smoke test returned an empty response.")
+    if not run_smoke_test(remote_agent):
         sys.exit(1)
-    logger.info("Smoke test passed.")
 
     # Emit for CI capture
     logger.info("AGENT_ENGINE_RESOURCE_NAME=%s", resource_name)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Deploy agent to Vertex AI Agent Engine")
+    parser = argparse.ArgumentParser(
+        description="Deploy agent to Vertex AI Agent Engine"
+    )
     parser.add_argument(
         "--env",
         choices=["dev", "prod"],

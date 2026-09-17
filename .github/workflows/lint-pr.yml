@@ -4,6 +4,14 @@ on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
+# amannn/action-semantic-pull-request reads the PR through the API, which needs
+# pull-requests: read. New repositories default GITHUB_TOKEN to contents-only, so without
+# this the job fails with "Resource not accessible by integration" — confirmed on a real
+# run before this was added. Declaring permissions explicitly also drops every other scope,
+# which is what a title check should have.
+permissions:
+  pull-requests: read
+
 jobs:
   conventional-commit:
     name: Check PR title format
@@ -14,13 +22,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # Exactly the set commitizen's cz_conventional_commits accepts, matching the
+          # commit-msg hook configured in pyproject.toml. A narrower list here would reject
+          # a PR title that the hook had already accepted as a commit message — a confusing
+          # place for the two to disagree. Kept in step with the same list in
+          # {{cookiecutter.project_slug}}/.github/workflows/lint-pr.yml.
           types: |
+            build
+            bump
+            chore
+            ci
+            docs
             feat
             fix
-            chore
-            docs
-            test
-            refactor
             perf
-            ci
+            refactor
+            revert
+            style
+            test
           requireScope: false
