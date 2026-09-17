@@ -9,6 +9,8 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-17
+
 ### Changed
 
 - **BREAKING: deployed agents now run as `agent-engine-sa`, not the project's shared Reasoning
@@ -100,6 +102,10 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 - Documented dev/prod environment separation, with a required GitHub Environments table.
 
 ## [1.1.0] - 2026-07-20
+
+> **Not tagged.** `v1.0.0` and `v1.1.0` were recorded here but never pushed as git tags, so
+> `cruft update --checkout v1.1.0` cannot resolve. `v2.0.0` is the first release with a tag;
+> pin to that or later. The two sections below are kept as a record of what changed.
 
 First cruft-aware release: generated projects can now track and pull in template updates
 via `cruft check`/`cruft update` instead of only being generated once and left to drift.
