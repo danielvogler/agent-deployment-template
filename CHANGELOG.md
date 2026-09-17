@@ -4,7 +4,7 @@ All notable changes to this cookiecutter template are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html) — see
-[Template Versioning](CLAUDE.md#template-versioning) in `CLAUDE.md` for what bumps count as
+[Template Versioning](AGENTS.md#template-versioning) in `AGENTS.md` for what bumps count as
 MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]

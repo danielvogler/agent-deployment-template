@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="ADK Agent Deployment Template — generate a production-ready Google ADK agent repository and deploy it to Vertex AI Agent Engine, with observability, evals and CI already wired up.">
+  <title>ADK Agent Deployment Template</title>
+  <!-- Dark twin of banner-light.svg. Only the ground, the mark's plate and the
+       text colours change; the geometry and the Google accents are identical,
+       so the two render as the same mark in either theme. -->
+  <rect width="1200" height="300" fill="#131314"/>
+
+  <g transform="translate(76 80)">
+    <rect width="140" height="140" rx="18" fill="#1F2023"/>
+
+    <!-- the two stamped copies, offset behind -->
+    <rect x="58" y="30" width="52" height="52" rx="8" fill="none" stroke="#FFFFFF" stroke-opacity="0.26" stroke-width="2"/>
+    <rect x="44" y="44" width="52" height="52" rx="8" fill="none" stroke="#FFFFFF" stroke-opacity="0.42" stroke-width="2"/>
+
+    <!-- the template itself -->
+    <rect x="30" y="58" width="52" height="52" rx="8" fill="#FFFFFF" fill-opacity="0.12"/>
+    <rect x="30" y="58" width="52" height="52" rx="8" fill="none" stroke="#4285F4" stroke-width="2.6"/>
+
+    <!-- the cut line through it -->
+    <rect x="42" y="82" width="28" height="4" rx="2" fill="#FBBC04"/>
+  </g>
+
+  <g font-family="Google Sans, Inter, ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="258" y="70" font-size="13" font-weight="600" letter-spacing="2.4" fill="#4285F4">COOKIECUTTER TEMPLATE FOR GOOGLE ADK</text>
+
+    <text x="256" y="142" font-size="58" font-weight="600" letter-spacing="-2" fill="#E8EAED">Agent Deployment Template</text>
+
+    <!-- Google four-colour rule -->
+    <g>
+      <rect x="258" y="160" width="18" height="4" rx="2" fill="#4285F4"/>
+      <rect x="280" y="160" width="18" height="4" rx="2" fill="#EA4335"/>
+      <rect x="302" y="160" width="18" height="4" rx="2" fill="#FBBC04"/>
+      <rect x="324" y="160" width="18" height="4" rx="2" fill="#34A853"/>
+    </g>
+
+    <text x="257" y="203" font-size="22" fill="#9AA0A6">Generate an ADK agent repository that already knows how</text>
+    <text x="257" y="233" font-size="22" fill="#9AA0A6">to deploy, log, trace and test itself.</text>
+
+    <text x="257" y="270" font-size="14" letter-spacing="0.3" fill="#80868B">cookiecutter · cruft · uv · Ruff · pyright · promptfoo · Vertex AI Agent Engine</text>
+  </g>
+</svg>

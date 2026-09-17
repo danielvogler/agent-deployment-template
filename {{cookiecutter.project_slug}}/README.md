@@ -1,39 +1,88 @@
-# {{cookiecutter.project_name}}
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="{{ cookiecutter.project_name|e }} — {{ cookiecutter.project_description|e }}" src="docs/assets/banner-light.svg">
+</picture>
 
-{{cookiecutter.project_description}}
+{%- set repo = cookiecutter.github_org ~ '/' ~ cookiecutter.project_slug %}
+{%- set shield_license = cookiecutter.open_source_license.replace('-', '--') %}
 
+[![CI](https://img.shields.io/github/actions/workflow/status/{{repo}}/ci.yml?branch=main&style=flat&label=CI&labelColor=0E0E10&color=0E0E10)](https://github.com/{{repo}}/actions/workflows/ci.yml)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/{{repo}}/deploy.yml?branch=main&style=flat&label=deploy&labelColor=0E0E10&color=0E0E10)](https://github.com/{{repo}}/actions/workflows/deploy.yml)
+{% if cookiecutter.open_source_license == 'Proprietary' -%}
+![License](https://img.shields.io/badge/license-Proprietary-0E0E10?style=flat&labelColor=0E0E10)
+{%- else -%}
+[![License](https://img.shields.io/badge/license-{{shield_license}}-0E0E10?style=flat&labelColor=0E0E10)](LICENSE)
+{%- endif %}
+[![Python](https://img.shields.io/badge/python-{{cookiecutter.python_version}}-0E0E10?style=flat&labelColor=0E0E10&logo=python&logoColor=white)](pyproject.toml)
+[![uv](https://img.shields.io/badge/uv-managed-0E0E10?style=flat&labelColor=0E0E10&logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/ruff-checked-0E0E10?style=flat&labelColor=0E0E10&logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
+[![Pyright](https://img.shields.io/badge/pyright-strict-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10?style=flat&labelColor=0E0E10&logo=pre-commit&logoColor=white)](.pre-commit-config.yaml)
+[![detect-secrets](https://img.shields.io/badge/detect--secrets-scanned-0E0E10?style=flat&labelColor=0E0E10)](https://github.com/Yelp/detect-secrets)
+[![Agent Engine](https://img.shields.io/badge/Vertex%20AI-Agent%20Engine-0E0E10?style=flat&labelColor=0E0E10&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai/docs/agents/overview)
+
+---
+
+**{{cookiecutter.project_description}}**
 Built with [Google ADK](https://google.github.io/adk-docs/) and deployed on [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/docs/agents/overview).
+
+## Start here
+
+Point your coding agent at **[AGENTS.md](./AGENTS.md)** and tell it what you want to change.
+
+```text
+Read AGENTS.md, then add a tool that looks up an order by ID
+and deploy it to dev.
+```
+
+That file is the single source of truth for this repository: setup, the make targets to use
+instead of raw commands, how to add a tool or a sub-agent, what the agent runs as once
+deployed, and where its logs and traces go. It ends with the traps that cost real debugging
+time and a definition of done.
+
+The rest of this page is the overview.
+
+---
 
 ## Architecture
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#FFFFFF","primaryTextColor":"#202124","primaryBorderColor":"#DADCE0","lineColor":"#5F6368","secondaryColor":"#F8F9FA","tertiaryColor":"#F8F9FA","clusterBkg":"#F8F9FA","clusterBorder":"#DADCE0","edgeLabelBackground":"#FFFFFF"},"flowchart":{"curve":"basis","nodeSpacing":40,"rankSpacing":64,"useMaxWidth":true}} }%%
 flowchart TD
-    subgraph local["Local Development"]
-        DEV[make dev] --> ADK[adk web :8000]
-        ADK --> ROOT[root_agent]
-        ROOT --> TOOLS[agent/tools/]
-        ROOT --> PROMPTS[prompts/ + prompts.yaml]
+    subgraph trusted["Your machine — developer credentials"]
+        DEV["make dev<br/>adk web :8000"] --> ROOT["root_agent"]
+        ROOT --> TOOLS["agent/tools/<br/>@instrument"]
+        ROOT --> PROMPTS["prompts/ + prompts.yaml"]
     end
 
-    subgraph ci["CI/CD — GitHub Actions"]
-        PUSH[git push] --> CI[ci.yml\nlint · format · typecheck · tests]
-        PUSH --> SEC[security.yml\nCodeQL · pip-audit · secret scan]
-        PR[pull request] --> EVAL[eval.yml\nprompfoo red-team]
-        CI & SEC & EVAL -->|all green on main| DEPLOY[deploy.yml]
+    subgraph github["GitHub — no GCP credentials until the gate"]
+        PR["pull request"] --> CHECKS["ci.yml · eval.yml · lint-pr.yml<br/>lint · types · tests · red-team"]
+        CHECKS --> REVIEW{{"Review and merge<br/>— human approval —"}}
+        REVIEW -->|push to main| DEPLOY["deploy.yml"]
+        SEC["security.yml<br/>CodeQL · pip-audit · secret scan"]
+        DRIFT["cruft-check.yml<br/>template drift"]
     end
 
-    subgraph gcp["Google Cloud Platform"]
-        DEPLOY --> ENGINE[Vertex AI Agent Engine]
+    subgraph gcp["Google Cloud — agent-engine-sa"]
+        ENGINE["Vertex AI Agent Engine<br/>runs as agent-engine-sa"]
         ENGINE --> MODEL{MODEL_PROVIDER}
-        MODEL --> G[Gemini 2.5 Pro]
-        MODEL --> CL[Claude via LiteLLM]
-        MODEL --> OAI[GPT-4o via LiteLLM]
-        ENGINE --> LOG[Cloud Logging]
-        ENGINE --> TRACE[Cloud Trace]
+        MODEL --> G["Gemini 2.5 Pro"]
+        MODEL --> CL["Claude via LiteLLM"]
+        MODEL --> OAI["GPT-4o via LiteLLM"]
+        ENGINE --> LOG["Cloud Logging<br/>reasoning_engine_stdout"]
+        ENGINE --> TRACE["Cloud Trace<br/>one span per tool call"]
     end
 
-    CLIENT[API Consumer] -->|REST| ENGINE
+    DEPLOY -->|GCP_SA_KEY · actAs| ENGINE
+    CLIENT["API consumer"] -->|REST| ENGINE
+
+    classDef approval fill:#1A73E8,stroke:#1A73E8,color:#FFFFFF;
+    class REVIEW approval;
 ```
+
+The blue node is the only point a human approves: everything upstream of it runs without
+GCP credentials, and everything downstream runs as `agent-engine-sa`. See
+[Runtime identity](AGENTS.md#runtime-identity) for what that service account can do.
 
 ## Quickstart
 
@@ -75,7 +124,7 @@ make deploy-prod          # deploy to prod
 ```
 
 `dev` and `prod` deploy via separate GitHub Environments with their own secrets and variables —
-see [Required GitHub Environments](CLAUDE.md#required-github-environments) in `CLAUDE.md` for
+see [Required GitHub Environments](AGENTS.md#required-github-environments) in `AGENTS.md` for
 exactly what to configure and where `setup-gcp`'s output goes.
 
 ## Make targets
@@ -152,7 +201,7 @@ Logs need no setup: Agent Engine forwards container stdout to Cloud Logging unde
 gcloud logging sinks describe _Default --project=$GOOGLE_CLOUD_PROJECT
 ```
 
-See [Observability](CLAUDE.md#observability) in `CLAUDE.md` for the field reference.
+See [Observability](AGENTS.md#observability) in `AGENTS.md` for the field reference.
 
 ### Cloud Logging query examples
 
@@ -182,7 +231,7 @@ make setup-monitoring   # one-time: dashboard + error-rate/latency alert policie
 ```
 
 Builds on Agent Engine's built-in `reasoning_engine/*` metrics (request count, latency, CPU/memory
-allocation) — see [Monitoring & alerting](CLAUDE.md#monitoring--alerting) in `CLAUDE.md` for the
+allocation) — see [Monitoring & alerting](AGENTS.md#monitoring--alerting) in `AGENTS.md` for the
 metric reference, alert thresholds, and how to attach an email or Slack notification channel.
 
 ## Security
@@ -191,4 +240,4 @@ Prompt injection, jailbreak, and PII tests run automatically on every PR via [pr
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). AI assistants: read [CLAUDE.md](CLAUDE.md) for full project context and working instructions.
+See [CONTRIBUTING.md](CONTRIBUTING.md). AI assistants: read [AGENTS.md](AGENTS.md) for full project context and working instructions.

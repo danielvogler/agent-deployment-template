@@ -86,7 +86,7 @@ def required_deploy_env(monkeypatch):
 
 
 def test_from_env_defaults_location_to_europe_west1(monkeypatch, required_deploy_env):
-    """Documented default in README.md and CLAUDE.md — keep the docs and code in step."""
+    """Documented default in README.md and AGENTS.md — keep the docs and code in step."""
     monkeypatch.delenv("GOOGLE_CLOUD_LOCATION", raising=False)
 
     assert DeploymentConfig.from_env().location == "europe-west1"
