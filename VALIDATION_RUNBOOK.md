@@ -4,36 +4,9 @@ How to prove the template repo is healthy, how to prove a generated project actu
 to Vertex AI Agent Engine, and how to move an existing agent into it. This is a **runbook**:
 re-run the relevant section whenever `{{cookiecutter.project_slug}}/` changes.
 
-This file is untracked by decision, with no `.gitignore` entry protecting it — never
-`git add -A` in this repo. It is not seen by `pre-commit run --all-files`; lint by hand:
-
-```bash
-npx markdownlint-cli2 --config .markdownlint.json VALIDATION_RUNBOOK.md
-```
-
 ---
 
-## Key lessons learned
-
-**A "bug" can not exist at all.** A full fix was once built, documented and nearly shipped for
-a claim that Agent Engine did not forward container stdout, so the whole observability layer
-supposedly wrote to a void. The real cause was a **disabled `_Default` log sink in the GCP
-project**, which silently discards every non-audit entry however it is written — including a
-direct `gcloud logging write`. The tell was that *nothing* in that project had logged anything
-for 30 days, across every agent in it.
-
-What catches this: deploy, then **widen the query** instead of trusting the narrow one. Before
-believing any observability finding, prove the destination works at all by writing a canary and
-reading it back.
-
-**`make validate` alone is not the gate.** It runs neither `pyright` nor the generated project's
-own `pre-commit` hook set, and a change declared green on `make validate` alone has shipped
-CI-breaking bugs. After any change to `{{cookiecutter.project_slug}}/`, re-run the §1d variant
-matrix, not just `make validate`.
-
----
-
-### GCP gotchas — each of these costs real time if you don't know it up front
+## GCP gotchas — each of these costs real time if you don't know it up front
 
 - **Read `engine.api_resource.spec.service_account`, never `engine.service_account`.** The
   latter returns `None` regardless of the real value — trusting it produces a false claim that
@@ -61,7 +34,7 @@ matrix, not just `make validate`.
   `RefreshError`. Both stores go stale independently, so check both before deploying:
   `gcloud auth print-access-token` and `gcloud auth application-default print-access-token`.
 
-### Deploy/teardown recipe that works (no `.env` juggling)
+## Deploy/teardown recipe that works (no `.env` juggling)
 
 `DeploymentConfig` derives the bucket and SA from the project id, so a deploy needs one line of
 `.env`:
@@ -89,7 +62,7 @@ gcloud monitoring policies delete "projects/example-gcp-project/alertPolicies/<i
 `gcloud monitoring policies delete` takes **one policy per invocation** — passing two prints
 help and silently does nothing.
 
-### Notes for whoever (or whichever agent) picks this up
+## Notes for whoever (or whichever agent) picks this up
 
 - **An AI coding agent working in this repo is typically denied `rm`, `curl`,
   `git commit`, `git push`, and `Read`/`Write` on `.env*`** (including `.env.example`), by
@@ -113,7 +86,7 @@ help and silently does nothing.
   project aside leaves the terminal inside the moved directory, so `make deploy-dev` would
   deploy pre-change code. Re-`cd` to the absolute path and check `pwd` first.
 
-### How to test CI without waiting on the fork — reusable technique
+## How to test CI without waiting on the fork — reusable technique
 
 GitHub disables workflows on forks until someone clicks *"I understand my workflows, go ahead
 and enable them"* in the Actions tab, and there is no REST endpoint for that button. The API
