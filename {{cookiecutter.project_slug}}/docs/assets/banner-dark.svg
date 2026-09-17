@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="{{ cookiecutter.project_name|e }} — {{ cookiecutter.project_description|e }}">
+  <title>{{ cookiecutter.project_name|e }}</title>
+  <!-- Dark twin of banner-light.svg. Only the ground, the mark's plate and the
+       text colours change; the geometry and the Google accents are identical,
+       so the two render as the same mark in either theme.
+
+       If your project name is long enough to collide with the right edge, drop
+       the title font-size below to about 40 - it is the one value here that
+       depends on the name. Change it in both files or the themes diverge. -->
+  <rect width="1200" height="300" fill="#131314"/>
+
+  <g transform="translate(76 80)">
+    <rect width="140" height="140" rx="18" fill="#1F2023"/>
+
+    <!-- spokes -->
+    <g stroke="#FFFFFF" stroke-opacity="0.30" stroke-width="2">
+      <path d="M70 70 L44 40" fill="none"/>
+      <path d="M70 70 L100 46" fill="none"/>
+      <path d="M70 70 L70 106" fill="none"/>
+    </g>
+
+    <!-- unlit tools -->
+    <g fill="#FFFFFF" fill-opacity="0.30">
+      <rect x="34" y="30" width="18" height="18" rx="4"/>
+      <rect x="92" y="36" width="18" height="18" rx="4"/>
+    </g>
+
+    <!-- the instrumented tool, and the frame that says it was traced -->
+    <rect x="61" y="98" width="18" height="18" rx="4" fill="#4285F4"/>
+    <rect x="54" y="91" width="32" height="32" rx="7" fill="none" stroke="#FBBC04" stroke-width="2.4"/>
+
+    <!-- the agent -->
+    <circle cx="70" cy="70" r="13" fill="#FFFFFF" fill-opacity="0.14"/>
+    <circle cx="70" cy="70" r="13" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2"/>
+  </g>
+
+  <g font-family="Google Sans, Inter, ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="258" y="70" font-size="13" font-weight="600" letter-spacing="2.4" fill="#4285F4">GOOGLE ADK AGENT ON VERTEX AI</text>
+
+    <text x="256" y="142" font-size="52" font-weight="600" letter-spacing="-1.6" fill="#E8EAED">{{ cookiecutter.project_name|e }}</text>
+
+    <!-- Google four-colour rule -->
+    <g>
+      <rect x="258" y="160" width="18" height="4" rx="2" fill="#4285F4"/>
+      <rect x="280" y="160" width="18" height="4" rx="2" fill="#EA4335"/>
+      <rect x="302" y="160" width="18" height="4" rx="2" fill="#FBBC04"/>
+      <rect x="324" y="160" width="18" height="4" rx="2" fill="#34A853"/>
+    </g>
+
+    <text x="257" y="203" font-size="22" fill="#9AA0A6">An ADK agent that runs as its own service account,</text>
+    <text x="257" y="233" font-size="22" fill="#9AA0A6">and logs and traces every tool call it makes.</text>
+
+    <text x="257" y="270" font-size="14" letter-spacing="0.3" fill="#80868B">Google ADK · Agent Engine · Cloud Logging · Cloud Trace · promptfoo · uv</text>
+  </g>
+</svg>

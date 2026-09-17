@@ -1,6 +1,42 @@
-# ADK Agent Deployment Template
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img alt="ADK Agent Deployment Template — generate a production-ready Google ADK agent repository and deploy it to Vertex AI Agent Engine, with observability, evals and CI already wired up." src="docs/assets/banner-light.svg">
+</picture>
 
-A professional [cookiecutter](https://cookiecutter.readthedocs.io) template for deploying [Google ADK](https://google.github.io/adk-docs/) agents to [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/docs/agents/overview). Clone once, generate a new agent project in seconds, deploy to GCP in under 30 minutes.
+[![CI](https://img.shields.io/github/actions/workflow/status/danielvogler/agent-deployment-template/ci.yml?branch=main&style=flat&label=CI&labelColor=0E0E10&color=0E0E10)](https://github.com/danielvogler/agent-deployment-template/actions/workflows/ci.yml)
+[![Template validation](https://img.shields.io/github/actions/workflow/status/danielvogler/agent-deployment-template/validate-template.yml?branch=main&style=flat&label=template&labelColor=0E0E10&color=0E0E10)](https://github.com/danielvogler/agent-deployment-template/actions/workflows/validate-template.yml)
+[![License](https://img.shields.io/badge/license-MIT-0E0E10?style=flat&labelColor=0E0E10)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-0E0E10?style=flat&labelColor=0E0E10&logo=python&logoColor=white)](pyproject.toml)
+[![uv](https://img.shields.io/badge/uv-managed-0E0E10?style=flat&labelColor=0E0E10&logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/ruff-checked-0E0E10?style=flat&labelColor=0E0E10&logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
+[![Pyright](https://img.shields.io/badge/pyright-strict-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10?style=flat&labelColor=0E0E10&logo=pre-commit&logoColor=white)](.pre-commit-config.yaml)
+[![detect-secrets](https://img.shields.io/badge/detect--secrets-scanned-0E0E10?style=flat&labelColor=0E0E10)](https://github.com/Yelp/detect-secrets)
+[![cruft](https://img.shields.io/badge/cruft-tracked-0E0E10?style=flat&labelColor=0E0E10)](https://cruft.github.io/cruft/)
+
+---
+
+**Answer eleven questions and get an agent repository that already knows how to deploy
+itself, run as its own service account, and show you what it did afterwards.**
+
+## Start here
+
+Generate a project, then point your coding agent at **[AGENTS.md](./AGENTS.md)** in the
+repository it just made, and tell it what you want the agent to do.
+
+```text
+Read AGENTS.md and get this deployed to our dev project. I want an agent
+that can answer questions about our internal runbooks.
+```
+
+That file is written for exactly this. It covers the prerequisites worth checking before
+anything is provisioned, the two credential stores a local deploy needs, the one IAM grant
+that fails only after the agent has been uploaded, and how to tell whether the thing
+actually works once it is running.
+
+The rest of this page is what the agent is working from.
+
+---
 
 ## What you get
 
@@ -14,7 +50,7 @@ Running `cookiecutter` against this template generates a fully configured Python
 - Pre-commit hooks: ruff, pyright, detect-secrets, markdownlint, commitizen
 - Promptfoo red-team evaluation suite (prompt injection, jailbreak, PII tests)
 - Cloud Logging and Cloud Trace integration via `make logs` / `make traces`
-- `CLAUDE.md` with full AI assistant instructions for ongoing development
+- `AGENTS.md` with full contributor and AI assistant instructions (`CLAUDE.md` points at it)
 - `.claude/commands/` slash commands: `/deploy`, `/eval`, `/logs`
 
 ## Prerequisites
@@ -59,46 +95,55 @@ cruft update   # apply the diff — resolve conflicts like a merge
 ## Generation flow
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#FFFFFF","primaryTextColor":"#202124","primaryBorderColor":"#DADCE0","lineColor":"#5F6368","secondaryColor":"#F8F9FA","tertiaryColor":"#F8F9FA","clusterBkg":"#F8F9FA","clusterBorder":"#DADCE0","edgeLabelBackground":"#FFFFFF"},"flowchart":{"curve":"basis","nodeSpacing":40,"rankSpacing":64,"useMaxWidth":true}} }%%
 flowchart LR
-    A[cookiecutter command] --> B[cookiecutter.json\nanswer prompts]
-    B --> C[pre_gen_project.py\nvalidate inputs]
-    C --> D[Render template files]
-    D --> E[post_gen_project.py\ngit init · uv sync · pre-commit install]
-    E --> F[Your agent repo\nready to develop and deploy]
+    A["cookiecutter command"] --> B["cookiecutter.json<br/>answer prompts"]
+    B --> C["pre_gen_project.py<br/>validate inputs"]
+    C --> D["Render template files"]
+    D --> E["post_gen_project.py<br/>git init · uv sync · pre-commit install"]
+    E --> F["Your agent repo<br/>ready to develop and deploy"]
 ```
 
 ## Generated repo architecture
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#FFFFFF","primaryTextColor":"#202124","primaryBorderColor":"#DADCE0","lineColor":"#5F6368","secondaryColor":"#F8F9FA","tertiaryColor":"#F8F9FA","clusterBkg":"#F8F9FA","clusterBorder":"#DADCE0","edgeLabelBackground":"#FFFFFF"},"flowchart":{"curve":"basis","nodeSpacing":40,"rankSpacing":64,"useMaxWidth":true}} }%%
 flowchart TD
-    subgraph local["Local Development"]
-        DEV[make dev] --> ADK[adk web :8000]
-        ADK --> ROOT[root_agent]
-        ROOT --> TOOLS[agent/tools/]
-        ROOT --> PROMPTS[prompts/ + prompts.yaml]
+    subgraph trusted["Your machine — developer credentials"]
+        DEV["make dev<br/>adk web :8000"] --> ROOT["root_agent"]
+        ROOT --> TOOLS["agent/tools/<br/>@instrument"]
+        ROOT --> PROMPTS["prompts/ + prompts.yaml"]
     end
 
-    subgraph ci["CI/CD — GitHub Actions"]
-        PUSH[git push] --> CI[ci.yml\nlint · format · typecheck · tests]
-        PUSH --> SEC[security.yml\nCodeQL · pip-audit · secret scan]
-        PR[pull request] --> EVAL[eval.yml\nprompfoo red-team]
-        CI & SEC & EVAL -->|all green on main| DEPLOY[deploy.yml]
+    subgraph github["GitHub — no GCP credentials until the gate"]
+        PR["pull request"] --> CHECKS["ci.yml · eval.yml · lint-pr.yml<br/>lint · types · tests · red-team"]
+        CHECKS --> REVIEW{{"Review and merge<br/>— human approval —"}}
+        REVIEW -->|push to main| DEPLOY["deploy.yml"]
+        SEC["security.yml<br/>CodeQL · pip-audit · secret scan"]
+        DRIFT["cruft-check.yml<br/>template drift"]
     end
 
-    subgraph gcp["Google Cloud Platform"]
-        DEPLOY -->|GCP_SA_KEY secret| ENGINE[Vertex AI\nAgent Engine]
+    subgraph gcp["Google Cloud — agent-engine-sa"]
+        ENGINE["Vertex AI Agent Engine<br/>runs as agent-engine-sa"]
         ENGINE --> MODEL{MODEL_PROVIDER}
-        MODEL --> G[Gemini 2.0 Flash]
-        MODEL --> CL[Claude via LiteLLM]
-        MODEL --> OAI[GPT-4o via LiteLLM]
-        ENGINE --> LOG[Cloud Logging]
-        ENGINE --> TRACE[Cloud Trace]
-        LOG --> LOGSH[make logs]
-        TRACE --> TRACESH[make traces]
+        MODEL --> G["Gemini 2.5 Pro"]
+        MODEL --> CL["Claude via LiteLLM"]
+        MODEL --> OAI["GPT-4o via LiteLLM"]
+        ENGINE --> LOG["Cloud Logging<br/>reasoning_engine_stdout"]
+        ENGINE --> TRACE["Cloud Trace<br/>one span per tool call"]
+        LOG --> LOGSH["make logs"]
+        TRACE --> TRACESH["make traces"]
     end
 
-    CLIENT[API Consumer] -->|REST| ENGINE
+    DEPLOY -->|GCP_SA_KEY · actAs| ENGINE
+    CLIENT["API consumer"] -->|REST| ENGINE
+
+    classDef approval fill:#1A73E8,stroke:#1A73E8,color:#FFFFFF;
+    class REVIEW approval;
 ```
+
+The blue node is the only point a human approves: everything upstream of it runs without
+GCP credentials, and everything downstream runs as `agent-engine-sa`.
 
 ## Cookiecutter variables
 
@@ -118,7 +163,7 @@ flowchart TD
 
 ## Contributing to the template
 
-See [CLAUDE.md](CLAUDE.md) for contributor instructions (also read automatically by AI assistants).
+See [AGENTS.md](AGENTS.md) for contributor instructions (also read automatically by AI assistants).
 
 ```bash
 make install    # install template dev dependencies
