@@ -61,22 +61,9 @@ for ROLE in roles/aiplatform.user roles/logging.logWriter roles/cloudtrace.agent
     --quiet
 done
 
-# Allow the agent's runtime identity to be assumed. deploy.py passes
-# service_account=$SA_EMAIL to agent_engines.create/update, and whoever runs the
-# deploy needs actAs on that SA for Vertex to accept it. These bindings are on the
-# SA resource itself, not the project. Two principals need it:
-#
-#   - the SA itself, which is how CI authenticates (GCP_SA_KEY in deploy.yml)
-#   - whoever runs this bootstrap, who is the likely local deployer. Without it,
-#     their first `make deploy-dev` fails with PermissionDenied on actAs *after*
-#     pickling and uploading the agent -- a confusing way to learn about an IAM
-#     prerequisite. Not an escalation: this account just created the SA and granted
-#     it three project roles, and this binding covers one service account.
-#
-# Teammates who also deploy locally need adding by hand:
-#   gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
-#     --member="user:them@example.com" --role=roles/iam.serviceAccountUser \
-#     --project="$PROJECT"
+# Grant actAs on the SA resource itself to the two principals that deploy: the SA
+# (how CI authenticates) and whoever runs this bootstrap. Teammates deploying from
+# their own machines must be added by hand -- see "Runtime identity" in AGENTS.md.
 echo "> Granting actAs on the runtime service account..."
 ACT_AS_MEMBERS=("serviceAccount:$SA_EMAIL")
 

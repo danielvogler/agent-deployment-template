@@ -105,13 +105,11 @@ class DeploymentConfig:
             ),
             resource_name=os.getenv("AGENT_ENGINE_RESOURCE_NAME") or None,
             agent_display_name="{{cookiecutter.project_name}}",
-            # Staging subfolder within the bucket; project-named so artifacts
-            # land at <bucket>/data-trace-agent/ instead of the generic default.
+            # Staging subfolder, project-named so several agents can share one
+            # bucket instead of colliding in the SDK's generic default.
             gcs_dir_name=_project_name(),
-            # The identity the deployed agent runs as. Always set, so the agent runs
-            # as the SA setup_gcp.sh provisions rather than silently falling back to
-            # the shared Reasoning Engine Service Agent. See "Runtime identity" in
-            # AGENTS.md for the actAs permission this requires.
+            # Always set: omitting it silently falls back to the project's shared
+            # Reasoning Engine Service Agent. See "Runtime identity" in AGENTS.md.
             service_account=service_account or default_service_account(project),
         )
 
@@ -119,21 +117,8 @@ class DeploymentConfig:
     def runtime_env_vars(self) -> dict[str, str]:
         """Environment variables set on the deployed container.
 
-        Deliberately minimal, and limited to variables this project defines. The
-        observability clients resolve project and credentials from the metadata
-        server, so nothing here needs to restate `GOOGLE_CLOUD_*`, and the model
-        handle is already baked into the pickled agent by `resolve_model()` at
-        import time, so `MODEL_PROVIDER` has no effect at runtime either.
-
-        Logs need nothing here: Agent Engine forwards container stdout to Cloud
-        Logging on its own. Tracing does, because nothing forwards spans --
-        `CLOUD_TRACE_ENABLED` is off by default so a local `make dev` never writes to
-        a real project.
-
-        `OTEL_EXPORTER_GCP_TRACE_PROJECT_ID` is not optional. Without it the exporter
-        falls back to `google.auth.default()`, which resolves no project inside the
-        Agent Engine container, and every export fails with
-        `INVALID_ARGUMENT: Invalid project id in name!`.
+        Deliberately minimal. Logs need nothing here; traces need both of these,
+        and neither is optional. See "Observability -> Destinations" in AGENTS.md.
         """
         return {
             "CLOUD_TRACE_ENABLED": "true",
