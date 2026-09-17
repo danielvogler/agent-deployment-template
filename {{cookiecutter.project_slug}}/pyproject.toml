@@ -72,6 +72,8 @@ exclude_also = [
 name = "cz_conventional_commits"
 version_scheme = "semver"
 tag_format = "v$version"
+# Read and write [project].version rather than carrying a second copy here; without a
+# provider, `cz bump` has no source of truth to read.
+version_provider = "pep621"
 update_changelog_on_bump = true
 changelog_incremental = true
-version_files = ["pyproject.toml:^version"]
