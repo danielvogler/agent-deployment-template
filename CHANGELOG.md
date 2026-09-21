@@ -11,6 +11,11 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ### Added
 
+- **Dependabot, in both the template and the projects it generates.** Neither had one, so
+  nothing tracked uv dependencies, GitHub Actions or pre-commit hook versions. Monthly and
+  grouped, with a 7-day cooldown on Python packages; generated projects keep runtime majors
+  ungrouped so they arrive one at a time. Security advisories are unaffected by the schedule.
+
 - **`detect-private-key` and `uv-lock` in generated projects' pre-commit hooks.** The lock
   file is committed and written by `uv sync` during generation, but nothing kept it in step
   with `pyproject.toml` afterwards.
