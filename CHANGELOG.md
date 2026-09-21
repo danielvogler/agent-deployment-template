@@ -9,6 +9,13 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]
 
+### Security
+
+- **Generated projects no longer run unpinned third-party code.** `security.yml` followed
+  `trufflesecurity/trufflehog@main` and `eval.yml` ran `promptfoo@latest`; both resolved at
+  run time, so whatever was published under that ref executed with repository read access.
+  TruffleHog is now pinned to a commit SHA and promptfoo to an exact version.
+
 ## [2.0.0] - 2026-09-17
 
 ### Changed

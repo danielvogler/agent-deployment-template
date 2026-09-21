@@ -94,7 +94,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Pinned to a commit SHA, not a tag and never @main: this step runs with repository
+      # read access in every generated project, so a moving ref means whatever is on that
+      # branch at run time executes here. Dependabot's github-actions ecosystem bumps the
+      # SHA and updates the comment.
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@f714bf454f350590f4a24c3ddb1aef02c35bf5b6 # v3.97.5
         with:
           extra_args: --only-verified
