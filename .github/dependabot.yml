@@ -1,0 +1,46 @@
+version: 2
+
+# Monthly and grouped, so this is roughly one pull request per ecosystem per month rather
+# than a drip of single-dependency PRs nobody reads. Security updates are not affected by
+# the schedule: they still arrive as soon as an advisory is published.
+#
+# Only the template's own root is scanned. The generated layer under
+# {{cookiecutter.project_slug}}/ cannot be: its directory name is an unrendered Jinja
+# expression and its pyproject.toml has Jinja in requires-python, so no ecosystem parser
+# can read it. Generated projects get their own dependabot.yml, shipped as a template file.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    groups:
+      hooks:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: monthly
+    # GitHub already holds a new release for 3 days before offering it. Seven gives a bad
+    # release time to be yanked before it reaches a pull request here.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+    groups:
+      # [project].dependencies is empty in this repo -- the template itself ships no
+      # runtime dependencies -- so one group covers everything the lock file holds.
+      dev-dependencies:
+        patterns: ["*"]
