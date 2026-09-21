@@ -16,6 +16,13 @@ MAJOR/MINOR/PATCH and how releases are tagged.
   run time, so whatever was published under that ref executed with repository read access.
   TruffleHog is now pinned to a commit SHA and promptfoo to an exact version.
 
+- **Every workflow now declares a read-only `GITHUB_TOKEN`.** Only `lint-pr.yml` set
+  `permissions`, so the other workflows in both layers inherited the organisation default
+  — a setting held outside the repo and changeable without a commit. Where that default is
+  read-and-write, those jobs held a token that could push commits. `security.yml`'s
+  job-level scopes are unchanged; `deploy.yml` notes the `id-token: write` a future move to
+  Workload Identity Federation will need.
+
 ## [2.0.0] - 2026-09-17
 
 ### Changed
