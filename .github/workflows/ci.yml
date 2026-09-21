@@ -20,10 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Reads .python-version so a local `uv run` and this job cannot drift apart.
+      # validate-template.yml deliberately does not: its version comes from the
+      # generation matrix, which is the point of that workflow.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version-file: .python-version
 
       - uses: astral-sh/setup-uv@v4
         with:

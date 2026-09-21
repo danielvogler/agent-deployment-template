@@ -16,6 +16,10 @@ MAJOR/MINOR/PATCH and how releases are tagged.
   grouped, with a 7-day cooldown on Python packages; generated projects keep runtime majors
   ungrouped so they arrive one at a time. Security advisories are unaffected by the schedule.
 
+- **`detect-private-key` and `uv-lock` in generated projects' pre-commit hooks.** The lock
+  file is committed and written by `uv sync` during generation, but nothing kept it in step
+  with `pyproject.toml` afterwards.
+
 ### Security
 
 - **Generated projects no longer run unpinned third-party code.** `security.yml` followed
