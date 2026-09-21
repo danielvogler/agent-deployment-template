@@ -14,7 +14,9 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 - **Generated projects no longer run unpinned third-party code.** `security.yml` followed
   `trufflesecurity/trufflehog@main` and `eval.yml` ran `promptfoo@latest`; both resolved at
   run time, so whatever was published under that ref executed with repository read access.
-  TruffleHog is now pinned to a commit SHA and promptfoo to an exact version.
+  TruffleHog is now pinned to a commit SHA *and* to an exact scanner image tag — the action
+  is a wrapper around `docker run`, so the SHA alone would still have pulled `:latest` —
+  and promptfoo to an exact version.
 
 - **Every workflow now declares a read-only `GITHUB_TOKEN`.** Only `lint-pr.yml` set
   `permissions`, so the other workflows in both layers inherited the organisation default
