@@ -16,6 +16,22 @@ MAJOR/MINOR/PATCH and how releases are tagged.
   grouped, with a 7-day cooldown on Python packages; generated projects keep runtime majors
   ungrouped so they arrive one at a time. Security advisories are unaffected by the schedule.
 
+### Security
+
+- **Generated projects no longer run unpinned third-party code.** `security.yml` followed
+  `trufflesecurity/trufflehog@main` and `eval.yml` ran `promptfoo@latest`; both resolved at
+  run time, so whatever was published under that ref executed with repository read access.
+  TruffleHog is now pinned to a commit SHA *and* to an exact scanner image tag — the action
+  is a wrapper around `docker run`, so the SHA alone would still have pulled `:latest` —
+  and promptfoo to an exact version.
+
+- **Every workflow now declares a read-only `GITHUB_TOKEN`.** Only `lint-pr.yml` set
+  `permissions`, so the other workflows in both layers inherited the organisation default
+  — a setting held outside the repo and changeable without a commit. Where that default is
+  read-and-write, those jobs held a token that could push commits. `security.yml`'s
+  job-level scopes are unchanged; `deploy.yml` notes the `id-token: write` a future move to
+  Workload Identity Federation will need.
+
 ## [2.0.0] - 2026-09-17
 
 ### Changed
