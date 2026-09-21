@@ -9,6 +9,12 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]
 
+### Added
+
+- **`detect-private-key` and `uv-lock` in generated projects' pre-commit hooks.** The lock
+  file is committed and written by `uv sync` during generation, but nothing kept it in step
+  with `pyproject.toml` afterwards.
+
 ## [2.0.0] - 2026-09-17
 
 ### Changed
