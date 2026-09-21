@@ -9,6 +9,13 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]
 
+### Added
+
+- **Dependabot, in both the template and the projects it generates.** Neither had one, so
+  nothing tracked uv dependencies, GitHub Actions or pre-commit hook versions. Monthly and
+  grouped, with a 7-day cooldown on Python packages; generated projects keep runtime majors
+  ungrouped so they arrive one at a time. Security advisories are unaffected by the schedule.
+
 ### Security
 
 - **Generated projects no longer run unpinned third-party code.** `security.yml` followed
