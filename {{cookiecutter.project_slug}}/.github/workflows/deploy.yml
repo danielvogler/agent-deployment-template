@@ -30,12 +30,44 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-    name: Deploy to Agent Engine
+  still-current:
+    name: Check the commit is still the tip of main
     # workflow_run fires on every CI completion, failed ones and pull requests included.
     if: "{% raw %}${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}{% endraw %}"
     runs-on: ubuntu-latest
+    outputs:
+      deploy: "{% raw %}${{ steps.tip.outputs.deploy }}{% endraw %}"
+    steps:
+      # Re-running an old CI run, or two runs finishing out of order, would otherwise
+      # deploy an older commit over a newer one. A superseded commit is skipped: the
+      # newer commit's own CI run deploys it.
+      - id: tip
+        env:
+          GH_TOKEN: "{% raw %}${{ github.token }}{% endraw %}"
+          TESTED_SHA: "{% raw %}${{ github.event.workflow_run.head_sha }}{% endraw %}"
+        run: |
+          if [ "{% raw %}${{ github.event_name }}{% endraw %}" = "workflow_dispatch" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          main_sha="$(gh api "repos/{% raw %}${{ github.repository }}{% endraw %}/commits/main" --jq .sha)"
+          if [ "$main_sha" = "$TESTED_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping deploy of $TESTED_SHA: main has moved on to $main_sha."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Deploy to Agent Engine
+    needs: still-current
+    if: "{% raw %}${{ needs.still-current.outputs.deploy == 'true' }}{% endraw %}"
+    runs-on: ubuntu-latest
     environment: "{% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}"
+    # One deploy per environment at a time, queued rather than cancelled mid-upload.
+    concurrency:
+      group: "deploy-{% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}"
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
