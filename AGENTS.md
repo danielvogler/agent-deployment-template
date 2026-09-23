@@ -13,7 +13,7 @@ This is a **cookiecutter template** repository. Running `cookiecutter .` (or `co
 
 ### Setup
 
-Prerequisites: Python 3.11+, `uv`, Node.js 20+, `cookiecutter`
+Prerequisites: Python 3.11+, `uv`, Node.js 22+ (promptfoo requires it), `cookiecutter`
 
 ```bash
 make install    # install dev dependencies + pre-commit/commit-msg git hooks

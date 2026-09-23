@@ -88,7 +88,7 @@ GCP credentials, and everything downstream runs as `agent-engine-sa`. See
 
 ### Prerequisites
 
-- Python {{cookiecutter.python_version}}+, [uv](https://docs.astral.sh/uv/), Node.js 20+
+- Python {{cookiecutter.python_version}}+, [uv](https://docs.astral.sh/uv/), Node.js 22+ (promptfoo requires it)
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) authenticated
 
 ### Local development

@@ -11,7 +11,7 @@ assistants alike. `CLAUDE.md` points here and holds no content of its own.
 
 ### Setup (run this once, in order)
 
-Prerequisites: Python {{cookiecutter.python_version}}+, `uv`, Node.js 20+, `gcloud` CLI
+Prerequisites: Python {{cookiecutter.python_version}}+, `uv`, Node.js 22+ (promptfoo requires it), `gcloud` CLI
 
 ```bash
 # 1. Install dependencies

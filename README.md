@@ -57,7 +57,7 @@ Running `cookiecutter` against this template generates a fully configured Python
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Node.js 20+ (for promptfoo)
+- Node.js 22+ (promptfoo requires it)
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) (for deployment)
 - [cruft](https://cruft.github.io/cruft/) — `pip install cruft` (wraps cookiecutter and tracks
   the template version so you can pull in updates later; plain
