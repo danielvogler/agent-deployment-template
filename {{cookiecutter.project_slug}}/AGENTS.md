@@ -520,6 +520,11 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
   newer google-adk or cloudpickle in the container fails at request time. Deploy through
   `uv run` so the environment matches the lock, and commit `uv.lock` after changing
   dependencies.
+- **Nothing under `agent/` except `agent/agent.py` may import `deployment` or `tests`.**
+  Only `agent` and `prompts` are shipped. The container imports `agent/__init__.py` and the
+  tool modules by reference, but never `agent/agent.py`, whose `resolve_model()` call is
+  evaluated at pickle time. A `deployment` import elsewhere deploys green and fails on the
+  first request; `tests/unit/test_pickle_boundary.py` catches it in CI.
 - **A squash merge uses the PR title, not your commit messages.** That title is what
   `cz bump` reads to build the changelog, which is why `lint-pr.yml` checks it separately
   from the local commit-msg hook.
