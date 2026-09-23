@@ -248,15 +248,15 @@ Alert.
 | `lint-pr.yml` | PR opened/edited | PR title is a valid conventional commit |
 | `security.yml` | push to main + weekly | CodeQL, pip-audit CVEs, secret scan |
 | `eval.yml` | PR to main | promptfoo red-team (90% pass threshold) |
-| `deploy.yml` | push to main | deploys to Agent Engine prod, then runs a standalone health check |
+| `deploy.yml` | `ci.yml` passing on main | deploys that commit to Agent Engine prod, then runs a standalone health check |
 | `cruft-check.yml` | push + PR + weekly | non-blocking: warns if `cruft update` is available from the template |
 
 ### Required GitHub Environments
 
 `deploy.yml`'s job targets a GitHub Environment named `dev` or `prod` (Settings → Environments →
-New environment), matching its `environment` `workflow_dispatch` input — a plain push to `main`
-defaults to `prod`. Each environment should point at its own GCP project, so dev and prod need
-their own **Environment secrets/variables** — not repository-level ones, which would make both
+New environment), matching its `environment` `workflow_dispatch` input — a push to `main` deploys
+to `prod` once `ci.yml` has passed on it, and never when it fails. Each environment should point
+at its own GCP project, so dev and prod need their own **Environment secrets/variables** — not repository-level ones, which would make both
 environments share the same credentials:
 
 | Name | Kind | Scope | Description |

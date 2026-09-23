@@ -1,7 +1,11 @@
 name: Deploy
 
 on:
-  push:
+  # Deploy only after CI has passed on the pushed commit. A plain `push` trigger
+  # runs in parallel with ci.yml and deploys commits that fail lint or tests.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -28,12 +32,14 @@ permissions:
 jobs:
   deploy:
     name: Deploy to Agent Engine
+    # workflow_run fires on every CI completion, failed ones and pull requests included.
+    if: "{% raw %}${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}{% endraw %}"
     runs-on: ubuntu-latest
     environment: "{% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}"
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: "{% raw %}${{ github.event.inputs.ref || github.sha }}{% endraw %}"
+          ref: "{% raw %}${{ github.event.inputs.ref || github.event.workflow_run.head_sha || github.sha }}{% endraw %}"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -77,6 +83,6 @@ jobs:
           echo "## Deployment successful" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Environment:** {% raw %}${{ github.event.inputs.environment || 'prod' }}{% endraw %}" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Ref:** {% raw %}${{ github.event.inputs.ref || github.sha }}{% endraw %}" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Ref:** {% raw %}${{ github.event.inputs.ref || github.event.workflow_run.head_sha || github.sha }}{% endraw %}" >> "$GITHUB_STEP_SUMMARY"
           echo "**Resource:**" >> "$GITHUB_STEP_SUMMARY"
           cat .agent_engine_resource >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "N/A" >> "$GITHUB_STEP_SUMMARY"

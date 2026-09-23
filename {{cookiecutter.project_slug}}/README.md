@@ -58,7 +58,7 @@ flowchart TD
     subgraph github["GitHub — no GCP credentials until the gate"]
         PR["pull request"] --> CHECKS["ci.yml · eval.yml · lint-pr.yml<br/>lint · types · tests · red-team"]
         CHECKS --> REVIEW{{"Review and merge<br/>— human approval —"}}
-        REVIEW -->|push to main| DEPLOY["deploy.yml"]
+        REVIEW -->|"push to main, CI green"| DEPLOY["deploy.yml"]
         SEC["security.yml<br/>CodeQL · pip-audit · secret scan"]
         DRIFT["cruft-check.yml<br/>template drift"]
     end
