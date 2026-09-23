@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-0E0E10?style=flat&labelColor=0E0E10&logo=python&logoColor=white)](pyproject.toml)
 [![uv](https://img.shields.io/badge/uv-managed-0E0E10?style=flat&labelColor=0E0E10&logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
 [![Ruff](https://img.shields.io/badge/ruff-checked-0E0E10?style=flat&labelColor=0E0E10&logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
-[![Pyright](https://img.shields.io/badge/pyright-strict-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
+[![Pyright](https://img.shields.io/badge/pyright-checked-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10?style=flat&labelColor=0E0E10&logo=pre-commit&logoColor=white)](.pre-commit-config.yaml)
 [![detect-secrets](https://img.shields.io/badge/detect--secrets-scanned-0E0E10?style=flat&labelColor=0E0E10)](https://github.com/Yelp/detect-secrets)
 [![cruft](https://img.shields.io/badge/cruft-tracked-0E0E10?style=flat&labelColor=0E0E10)](https://cruft.github.io/cruft/)
