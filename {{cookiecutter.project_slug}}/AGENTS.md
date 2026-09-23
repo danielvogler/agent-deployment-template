@@ -514,9 +514,11 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
 - **`make setup-gcp` mints a new service-account key every run and revokes none.** Audit
   with `gcloud iam service-accounts keys list --iam-account=agent-engine-sa@<project>...`
   and delete keys server-side, not just on disk.
-- **`deployment/deploy.py` hand-maintains its `requirements` list.** It must stay in step
-  with `[project].dependencies` in `pyproject.toml`; a package missing there is an
-  `ImportError` at request time in the deployed container, not a deploy-time failure.
+- **The deployed container installs exactly what `uv.lock` pins.** `deploy.py` exports its
+  `requirements` from the lock, because the agent is pickled against the local versions and a
+  newer google-adk or cloudpickle in the container fails at request time. Deploy through
+  `uv run` so the environment matches the lock, and commit `uv.lock` after changing
+  dependencies.
 - **A squash merge uses the PR title, not your commit messages.** That title is what
   `cz bump` reads to build the changelog, which is why `lint-pr.yml` checks it separately
   from the local commit-msg hook.

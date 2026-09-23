@@ -9,6 +9,7 @@ Usage:
 import argparse
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -23,6 +24,42 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def locked_requirements() -> list[str]:
+    """Exact pins for every runtime dependency, exported from uv.lock.
+
+    The container must install the versions the agent is pickled against here, not
+    whatever newest release satisfies a version floor: an agent pickled under one
+    google-adk and unpickled under another fails on every request, and a cloudpickle
+    mismatch fails at container start. `uv run` syncs the environment to the lock
+    first, so the lock is exactly what this process has imported.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "uv",
+                "export",
+                "--frozen",
+                "--no-dev",
+                "--no-emit-project",
+                "--no-hashes",
+                "--no-header",
+                "--no-annotate",
+            ],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        detail = getattr(exc, "stderr", None) or exc
+        raise RuntimeError(
+            f"Could not export pinned requirements from uv.lock: {detail}"
+        ) from exc
+    return [line for line in result.stdout.splitlines() if line.strip()]
+
 
 def deploy(env: str) -> None:
     import vertexai
@@ -32,6 +69,7 @@ def deploy(env: str) -> None:
     from deployment.config import DeploymentConfig
 
     config = DeploymentConfig.from_env()
+    requirements = locked_requirements()
 
     logger.info("Deploying [%s] to Vertex AI Agent Engine", env)
     logger.info("  Project:  %s", config.project)
@@ -44,20 +82,6 @@ def deploy(env: str) -> None:
         location=config.location,
         staging_bucket=config.staging_bucket,
     )
-
-    # Must stay in step with [project].dependencies in pyproject.toml: this is the
-    # list installed in the remote container, and a package missing here is an
-    # ImportError at runtime rather than a deploy-time failure.
-    requirements = [
-        "google-adk>=1.0.0",
-        "google-cloud-aiplatform[agent_engines]>=1.90.0",
-        "opentelemetry-sdk>=1.20.0",
-        "opentelemetry-exporter-gcp-trace>=1.6.0",
-        "litellm>=1.50.0",
-        "pydantic>=2.0.0",
-        "python-dotenv>=1.0.0",
-        "pyyaml>=6.0",
-    ]
 
     # The pickled agent references agent.tools.* by module path, so the package has
     # to ship alongside it; prompts travels too, for runtime reads.
