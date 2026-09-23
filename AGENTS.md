@@ -36,7 +36,7 @@ make validate   # generate a test project and verify it compiles + tests pass
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
 | `ci.yml` | push + PR | Lints hooks/, validates markdown, checks cookiecutter.json |
-| `validate-template.yml` | push + PR | Generates a project via cookiecutter and runs its unit tests |
+| `validate-template.yml` | push + PR | Generates a project via cookiecutter and runs its unit tests; generates one via cruft and checks that `cruft update` applies a template change |
 | `lint-pr.yml` | PR open/edit | Checks PR title is a valid conventional commit |
 
 ### Template Versioning

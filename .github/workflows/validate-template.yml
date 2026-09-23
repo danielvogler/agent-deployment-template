@@ -105,3 +105,49 @@ jobs:
       - name: Run generated project's pre-commit hooks
         run: uv run pre-commit run --all-files
         working-directory: /tmp/cc-test/test-agent
+
+  cruft-update:
+    # Generated projects are told weekly by cruft-check.yml to run `cruft update`, and
+    # nothing else exercises that path: it once crashed on every generated project, and
+    # only surfaced when a downstream project tried to update. This generates a project
+    # the documented way, commits a template change, and requires the update to apply it.
+    name: cruft update applies a template change
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          ignore-nothing-to-cache: true
+
+      - name: Configure a git identity for the template commit
+        run: |
+          git config --global user.name "cruft-update-check"
+          git config --global user.email "cruft-update-check@example.com"
+
+      - name: Generate a project with cruft
+        run: |
+          uvx cruft create --no-input "$GITHUB_WORKSPACE" \
+            --output-dir /tmp/cruft-test \
+            --extra-context '{"project_name": "Test Agent", "author_email": "test@example.com", "gcp_project_id": "test-project-123"}'
+
+      - name: Commit a template change to a generated file
+        run: |
+          echo "<!-- cruft update check -->" >> "{{cookiecutter.project_slug}}/CONTRIBUTING.md"
+          git commit -qam "test: template change for the cruft update check"
+
+      - name: Update the generated project
+        working-directory: /tmp/cruft-test/test-agent
+        run: |
+          uvx cruft update --skip-apply-ask
+          grep -q "cruft update check" CONTRIBUTING.md
+          uvx cruft check
