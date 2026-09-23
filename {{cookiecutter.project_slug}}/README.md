@@ -178,6 +178,9 @@ Set `MODEL_PROVIDER` in `.env`:
 | `openai` | GPT-4o via LiteLLM |
 | `litellm` | Any model — set `LITELLM_MODEL` |
 
+Only `google` works on the deployed agent for now: the other providers' API keys are not forwarded
+to Agent Engine. See [Multi-provider model selection](AGENTS.md#multi-provider-model-selection).
+
 ## Logging and traces
 
 ```bash

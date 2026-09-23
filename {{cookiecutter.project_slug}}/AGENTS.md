@@ -80,6 +80,11 @@ Set `MODEL_PROVIDER` in `.env`:
 | `openai` | GPT-4o via LiteLLM | `OPENAI_API_KEY` |
 | `litellm` | Set `LITELLM_MODEL` | depends on model |
 
+> **Only `google` works once deployed.** `deploy.py` does not forward `ANTHROPIC_API_KEY` or
+> `OPENAI_API_KEY` to the Agent Engine container, so `anthropic`, `openai` and any `litellm` model
+> that needs an API key deploy fine and then fail on every request. They work locally, where the
+> key comes from `.env`.
+
 ### Environment variables
 
 | Variable | Required | Default | Description |
@@ -525,6 +530,9 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
   tool modules by reference, but never `agent/agent.py`, whose `resolve_model()` call is
   evaluated at pickle time. A `deployment` import elsewhere deploys green and fails on the
   first request; `tests/unit/test_pickle_boundary.py` catches it in CI.
+- **Non-Google model providers fail only after deploying.** No API key reaches the deployed
+  container, so a deploy with `MODEL_PROVIDER=anthropic` or `openai` goes green and every request
+  then fails. Local runs and tests pass because `.env` supplies the key.
 - **A squash merge uses the PR title, not your commit messages.** That title is what
   `cz bump` reads to build the changelog, which is why `lint-pr.yml` checks it separately
   from the local commit-msg hook.
