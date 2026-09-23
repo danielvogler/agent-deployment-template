@@ -101,10 +101,11 @@ Set `MODEL_PROVIDER` in `.env`:
 
 ### Health check
 
-`deployment/scripts/health_check.py` sends a message to the Agent Engine resource named by
-`AGENT_ENGINE_RESOURCE_NAME` and requires at least one event back — the same smoke test
-`deploy.py` runs right after deploying, but runnable standalone against an already-deployed
-resource:
+`deployment/scripts/health_check.py` creates a session on the Agent Engine resource named by
+`AGENT_ENGINE_RESOURCE_NAME`, sends a message to it in a second request, and requires at least
+one event back, following the same two-request path as the console playground and real clients.
+`deploy.py` runs this smoke test right after deploying; it also runs standalone against an
+already-deployed resource:
 
 ```bash
 make health-check                                                    # uses .env

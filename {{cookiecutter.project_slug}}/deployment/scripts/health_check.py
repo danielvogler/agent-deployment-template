@@ -31,10 +31,15 @@ def run_smoke_test(
     `remote_agent` is whatever `agent_engines.create/update/get` returns — a
     deployed ADK agent exposes `stream_query` (a generator of event dicts),
     not `query`.
+
+    The session is created in its own request first, as the console playground
+    and real clients do. Querying without one creates it inside the same request,
+    which passes even when sessions do not survive between requests.
     """
+    session = remote_agent.create_session(user_id=user_id)  # type: ignore[attr-defined]
     events = list(
         remote_agent.stream_query(  # type: ignore[attr-defined]
-            message=message, user_id=user_id
+            message=message, user_id=user_id, session_id=session["id"]
         )
     )
     if not events:
