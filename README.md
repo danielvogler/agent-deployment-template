@@ -14,6 +14,11 @@
 [![detect-secrets](https://img.shields.io/badge/detect--secrets-scanned-0E0E10?style=flat&labelColor=0E0E10)](https://github.com/Yelp/detect-secrets)
 [![cruft](https://img.shields.io/badge/cruft-tracked-0E0E10?style=flat&labelColor=0E0E10)](https://cruft.github.io/cruft/)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/hero-dark.svg">
+  <img alt="One template, many agents, kept in sync. agent-deployment-template is a cookiecutter template holding what every agent gets: a Google ADK agent with tools and prompts; pytest, pyright, promptfoo evals and CodeQL; CI/CD that deploys only after CI passes; JSON logs and Cloud Trace spans. cruft create stamps an agent repository from it once, after eleven questions, and cruft update keeps each repository in step with every release; cruft-check.yml flags one that falls behind. After review, merge and CI, each repository deploys to Vertex AI Agent Engine in dev and prod, running as agent-engine-sa with logs and traces." src="docs/assets/hero-light.svg">
+</picture>
+
 ---
 
 **Answer eleven questions and get an agent repository that already knows how to deploy
