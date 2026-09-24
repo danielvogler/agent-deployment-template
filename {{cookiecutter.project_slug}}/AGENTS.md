@@ -101,10 +101,11 @@ Set `MODEL_PROVIDER` in `.env`:
 
 ### Health check
 
-`deployment/scripts/health_check.py` sends a message to the Agent Engine resource named by
-`AGENT_ENGINE_RESOURCE_NAME` and requires at least one event back — the same smoke test
-`deploy.py` runs right after deploying, but runnable standalone against an already-deployed
-resource:
+`deployment/scripts/health_check.py` creates a session on the Agent Engine resource named by
+`AGENT_ENGINE_RESOURCE_NAME`, sends a message to it in a second request, and requires at least
+one event back, following the same two-request path as the console playground and real clients.
+`deploy.py` runs this smoke test right after deploying; it also runs standalone against an
+already-deployed resource:
 
 ```bash
 make health-check                                                    # uses .env
@@ -514,9 +515,16 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
 - **`make setup-gcp` mints a new service-account key every run and revokes none.** Audit
   with `gcloud iam service-accounts keys list --iam-account=agent-engine-sa@<project>...`
   and delete keys server-side, not just on disk.
-- **`deployment/deploy.py` hand-maintains its `requirements` list.** It must stay in step
-  with `[project].dependencies` in `pyproject.toml`; a package missing there is an
-  `ImportError` at request time in the deployed container, not a deploy-time failure.
+- **The deployed container installs exactly what `uv.lock` pins.** `deploy.py` exports its
+  `requirements` from the lock, because the agent is pickled against the local versions and a
+  newer google-adk or cloudpickle in the container fails at request time. Deploy through
+  `uv run` so the environment matches the lock, and commit `uv.lock` after changing
+  dependencies.
+- **Nothing under `agent/` except `agent/agent.py` may import `deployment` or `tests`.**
+  Only `agent` and `prompts` are shipped. The container imports `agent/__init__.py` and the
+  tool modules by reference, but never `agent/agent.py`, whose `resolve_model()` call is
+  evaluated at pickle time. A `deployment` import elsewhere deploys green and fails on the
+  first request; `tests/unit/test_pickle_boundary.py` catches it in CI.
 - **A squash merge uses the PR title, not your commit messages.** That title is what
   `cz bump` reads to build the changelog, which is why `lint-pr.yml` checks it separately
   from the local commit-msg hook.

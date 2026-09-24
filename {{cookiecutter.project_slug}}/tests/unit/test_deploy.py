@@ -210,17 +210,58 @@ def test_deploy_enables_observability_on_update_too(deploy_env, deps, monkeypatc
     }
 
 
-def test_deploy_requirements_match_pyproject_dependencies(deploy_env, deps):
-    """The remote container installs `requirements`, not pyproject.toml. A package
-    imported by agent/ but missing from this list is an ImportError in production,
-    which is exactly how the observability imports could regress."""
+def _locked_version(package: str) -> str:
+    """The version uv.lock resolves `package` to."""
     import tomllib
     from pathlib import Path
 
-    pyproject = Path(__file__).parent.parent.parent / "pyproject.toml"
-    with open(pyproject, "rb") as handle:
-        declared = tomllib.load(handle)["project"]["dependencies"]
+    lockfile = Path(__file__).parent.parent.parent / "uv.lock"
+    with open(lockfile, "rb") as handle:
+        packages = tomllib.load(handle)["package"]
+    return next(entry["version"] for entry in packages if entry["name"] == package)
 
+
+@pytest.mark.parametrize("package", ["google-adk", "cloudpickle", "pydantic"])
+def test_deploy_pins_requirements_to_the_lockfile(deploy_env, deps, package):
+    """The container must install exactly what the agent was pickled against. Version
+    floors let it resolve newer releases: google-adk>=1.0.0 once unpickled a 2.2.0 agent
+    under 2.9.2, and every request failed. cloudpickle is transitive, and a mismatch
+    there breaks unpickling at container start."""
     deploy("dev")
 
-    assert deps.create.call_args.kwargs["requirements"] == declared
+    requirements = deps.create.call_args.kwargs["requirements"]
+    assert f"{package}=={_locked_version(package)}" in requirements
+
+
+def test_deploy_requirements_carry_no_comments_or_dev_tools(deploy_env, deps):
+    """The SDK parses each line as a requirement; dev tools do not belong in production."""
+    deploy("dev")
+
+    requirements = deps.create.call_args.kwargs["requirements"]
+    assert all(line and not line.startswith(("#", "-")) for line in requirements)
+    assert not any(line.startswith(("pytest==", "ruff==")) for line in requirements)
+
+
+def test_deploy_sends_the_same_requirements_on_update(deploy_env, deps, monkeypatch):
+    monkeypatch.setenv("AGENT_ENGINE_RESOURCE_NAME", RESOURCE)
+
+    deploy("prod")
+
+    requirements = deps.get.return_value.update.call_args.kwargs["requirements"]
+    assert f"google-adk=={_locked_version('google-adk')}" in requirements
+
+
+def test_deploy_fails_before_uploading_when_the_lockfile_cannot_be_exported(
+    deploy_env, deps
+):
+    """Deploying without pins would silently bring back the version drift."""
+    import subprocess
+
+    failure = subprocess.CalledProcessError(2, ["uv"], stderr="uv.lock not found")
+    with (
+        patch("deployment.deploy.subprocess.run", side_effect=failure),
+        pytest.raises(RuntimeError, match="uv.lock not found"),
+    ):
+        deploy("dev")
+
+    deps.create.assert_not_called()
