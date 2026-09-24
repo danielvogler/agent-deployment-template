@@ -68,6 +68,13 @@ exclude_also = [
     "if __name__ == .__main__.:",
 ]
 
+[tool.cruft]
+# `cruft update` renders the template twice and runs the post-gen hook on both copies,
+# which gives each one a .git and a full .venv. Their binary diff cannot be decoded and
+# aborts the update. uv.lock is not template content either: the template ships none,
+# the hook resolves a fresh one per copy, and this project's lock is its own.
+skip = [".venv", ".git", "uv.lock"]
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 version_scheme = "semver"

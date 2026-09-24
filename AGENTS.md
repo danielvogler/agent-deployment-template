@@ -36,7 +36,7 @@ make validate   # generate a test project and verify it compiles + tests pass
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
 | `ci.yml` | push + PR | Lints hooks/, validates markdown, checks cookiecutter.json |
-| `validate-template.yml` | push + PR | Generates a project via cookiecutter and runs its unit tests |
+| `validate-template.yml` | push + PR | Generates a project via cookiecutter and runs its unit tests; generates one via cruft and checks that `cruft update` applies a template change |
 | `lint-pr.yml` | PR open/edit | Checks PR title is a valid conventional commit |
 
 ### Template Versioning
@@ -163,6 +163,10 @@ Update `CHANGELOG.md` under `[Unreleased]` for every user-facing change before c
 - **`make validate` generates with a relative path**, which is the one case where cruft
   cannot record a usable template reference. Generating from a URL or absolute path behaves
   differently — check both when touching `hooks/post_gen_project.py`.
+- **`hooks/post_gen_project.py` also runs inside `cruft update`, twice.** Cruft renders the
+  template at the old and the new commit and diffs the two copies. Anything the hook creates
+  that is not template content (`.git`, `.venv`, `uv.lock` today) must be listed under
+  `[tool.cruft] skip` in the generated `pyproject.toml`, or the update breaks.
 - **The generated project's own pre-commit is a separate gate.** A change can pass this
   repo's checks and still leave generated projects failing theirs; `validate-template.yml`
   runs the generated set for exactly this reason.
