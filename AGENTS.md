@@ -65,7 +65,7 @@ By default, `cruft update` pulls in whatever is on the template's `main` branch,
 include half-finished work. Instead, point it at a tagged release so upgrades are deliberate:
 
 ```bash
-cruft update --checkout v2.0.0
+cruft update --checkout v2.1.0
 ```
 
 Check that release's `CHANGELOG.md` entry first to know what the update will actually change
