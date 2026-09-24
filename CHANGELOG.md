@@ -9,6 +9,8 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-24
+
 ### Added
 
 - **Dependabot, in both the template and the projects it generates.** Neither had one, so
@@ -19,6 +21,47 @@ MAJOR/MINOR/PATCH and how releases are tagged.
 - **`detect-private-key` and `uv-lock` in generated projects' pre-commit hooks.** The lock
   file is committed and written by `uv sync` during generation, but nothing kept it in step
   with `pyproject.toml` afterwards.
+
+- **A `cruft-update` job in `validate-template.yml`.** It generates a project with
+  `cruft create`, commits a template change and requires `cruft update` to apply it, so the
+  update path can no longer break unnoticed.
+
+- **A test for the pickle-time import boundary.** `tests/unit/test_pickle_boundary.py`
+  unpickles `root_agent` in a fresh interpreter that cannot import `deployment` or `tests`,
+  as in the Agent Engine container. A `deployment` import under `agent/` used to deploy green
+  and fail on the first request; it now fails CI.
+
+### Fixed
+
+- **`deploy.yml` deployed commits that failed CI.** It ran on every push to `main` in parallel
+  with `ci.yml`, so a commit failing lint or tests still reached prod. It now runs on
+  `workflow_run` after `ci.yml` succeeds for a push to `main`, deploys the commit CI tested,
+  skips a commit that is no longer the tip of `main` (an old run re-run, or runs finishing out
+  of order) and queues deploys per environment. Manual `workflow_dispatch` deploys are
+  unchanged.
+
+- **The deployed container resolved newer packages than the agent was pickled against.**
+  `deploy.py` installed a hand-written list of version floors; `google-adk>=1.0.0` once
+  unpickled a 2.2.0 agent under 2.9.2 and every request failed. It now exports exact pins for
+  every runtime dependency from `uv.lock`, cloudpickle included.
+
+- **The smoke test missed broken sessions.** It queried without a session, which created one
+  inside the same request, so it passed while the console playground hung. The post-deploy
+  check and `make health-check` now create a session first, then query it.
+
+- **`cruft update` crashed on every generated project** with `ChangesetUnicodeError`. Cruft
+  runs the post-gen hook on both copies it renders, giving each a `.git` and a `.venv` whose
+  binary diff it cannot decode. The generated `pyproject.toml` now sets
+  `[tool.cruft] skip = [".venv", ".git", "uv.lock"]`.
+
+  **Existing projects:** cruft reads `skip` before it diffs, so this cannot arrive through
+  `cruft update` alone. Add `"skip": [".venv", ".git", "uv.lock"]` to `.cruft.json`, commit,
+  then update. Not to `pyproject.toml`: the update adds that section itself, and a second copy
+  becomes a duplicate table that breaks the TOML.
+
+- **`adk web` session data could be committed.** The generated `.gitignore` now ignores
+  `.adk/`, where `make dev` stores every local conversation event, including tool arguments
+  and the data tools returned. **Existing projects:** run `git rm --cached -r agent/.adk` once.
 
 ### Security
 
@@ -35,6 +78,15 @@ MAJOR/MINOR/PATCH and how releases are tagged.
   read-and-write, those jobs held a token that could push commits. `security.yml`'s
   job-level scopes are unchanged; `deploy.yml` notes the `id-token: write` a future move to
   Workload Identity Federation will need.
+
+### Documentation
+
+- Node.js 22+ is now the documented prerequisite. promptfoo refuses to start below 22.22, so
+  the old "20+" could not run `make eval`.
+- `anthropic`, `openai` and key-based `litellm` providers fail on every request once deployed,
+  because their API keys are not forwarded to Agent Engine. This is now stated where the
+  providers are introduced.
+- The Pyright badge claimed strict mode; both `pyproject.toml` files run it in basic mode.
 
 ## [2.0.0] - 2026-09-17
 

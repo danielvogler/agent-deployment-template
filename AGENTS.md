@@ -13,7 +13,7 @@ This is a **cookiecutter template** repository. Running `cookiecutter .` (or `co
 
 ### Setup
 
-Prerequisites: Python 3.11+, `uv`, Node.js 20+, `cookiecutter`
+Prerequisites: Python 3.11+, `uv`, Node.js 22+ (promptfoo requires it), `cookiecutter`
 
 ```bash
 make install    # install dev dependencies + pre-commit/commit-msg git hooks
@@ -65,7 +65,7 @@ By default, `cruft update` pulls in whatever is on the template's `main` branch,
 include half-finished work. Instead, point it at a tagged release so upgrades are deliberate:
 
 ```bash
-cruft update --checkout v2.0.0
+cruft update --checkout v2.1.0
 ```
 
 Check that release's `CHANGELOG.md` entry first to know what the update will actually change

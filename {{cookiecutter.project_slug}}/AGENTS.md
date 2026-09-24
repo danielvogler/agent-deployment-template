@@ -11,7 +11,7 @@ assistants alike. `CLAUDE.md` points here and holds no content of its own.
 
 ### Setup (run this once, in order)
 
-Prerequisites: Python {{cookiecutter.python_version}}+, `uv`, Node.js 20+, `gcloud` CLI
+Prerequisites: Python {{cookiecutter.python_version}}+, `uv`, Node.js 22+ (promptfoo requires it), `gcloud` CLI
 
 ```bash
 # 1. Install dependencies
@@ -79,6 +79,11 @@ Set `MODEL_PROVIDER` in `.env`:
 | `anthropic` | Claude Opus 4.8 via LiteLLM | `ANTHROPIC_API_KEY` |
 | `openai` | GPT-4o via LiteLLM | `OPENAI_API_KEY` |
 | `litellm` | Set `LITELLM_MODEL` | depends on model |
+
+> **Only `google` works once deployed.** `deploy.py` does not forward `ANTHROPIC_API_KEY` or
+> `OPENAI_API_KEY` to the Agent Engine container, so `anthropic`, `openai` and any `litellm` model
+> that needs an API key deploy fine and then fail on every request. They work locally, where the
+> key comes from `.env`.
 
 ### Environment variables
 
@@ -248,15 +253,15 @@ Alert.
 | `lint-pr.yml` | PR opened/edited | PR title is a valid conventional commit |
 | `security.yml` | push to main + weekly | CodeQL, pip-audit CVEs, secret scan |
 | `eval.yml` | PR to main | promptfoo red-team (90% pass threshold) |
-| `deploy.yml` | push to main | deploys to Agent Engine prod, then runs a standalone health check |
+| `deploy.yml` | `ci.yml` passing on main | deploys that commit to Agent Engine prod, then runs a standalone health check |
 | `cruft-check.yml` | push + PR + weekly | non-blocking: warns if `cruft update` is available from the template |
 
 ### Required GitHub Environments
 
 `deploy.yml`'s job targets a GitHub Environment named `dev` or `prod` (Settings → Environments →
-New environment), matching its `environment` `workflow_dispatch` input — a plain push to `main`
-defaults to `prod`. Each environment should point at its own GCP project, so dev and prod need
-their own **Environment secrets/variables** — not repository-level ones, which would make both
+New environment), matching its `environment` `workflow_dispatch` input — a push to `main` deploys
+to `prod` once `ci.yml` has passed on it, and never when it fails. Each environment should point
+at its own GCP project, so dev and prod need their own **Environment secrets/variables** — not repository-level ones, which would make both
 environments share the same credentials:
 
 | Name | Kind | Scope | Description |
@@ -525,6 +530,9 @@ Run `cz bump` (via `uv run cz bump`) to cut a release and move unreleased entrie
   tool modules by reference, but never `agent/agent.py`, whose `resolve_model()` call is
   evaluated at pickle time. A `deployment` import elsewhere deploys green and fails on the
   first request; `tests/unit/test_pickle_boundary.py` catches it in CI.
+- **Non-Google model providers fail only after deploying.** No API key reaches the deployed
+  container, so a deploy with `MODEL_PROVIDER=anthropic` or `openai` goes green and every request
+  then fails. Local runs and tests pass because `.env` supplies the key.
 - **A squash merge uses the PR title, not your commit messages.** That title is what
   `cz bump` reads to build the changelog, which is why `lint-pr.yml` checks it separately
   from the local commit-msg hook.

@@ -9,6 +9,9 @@
 *.key
 gcp-sa-key.json
 .agent_engine_resource
+# ADK's local session store, created by `adk web` (make dev). It records every
+# conversation event, including tool arguments and the data tools returned.
+.adk/
 
 # Python
 __pycache__/

@@ -2,7 +2,7 @@
 
 ## Local development setup
 
-Prerequisites: Python {{cookiecutter.python_version}}+, uv, Node.js 20+, gcloud CLI
+Prerequisites: Python {{cookiecutter.python_version}}+, uv, Node.js 22+ (promptfoo requires it), gcloud CLI
 
 ```bash
 make install

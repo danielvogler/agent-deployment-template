@@ -16,7 +16,7 @@
 [![Python](https://img.shields.io/badge/python-{{cookiecutter.python_version}}-0E0E10?style=flat&labelColor=0E0E10&logo=python&logoColor=white)](pyproject.toml)
 [![uv](https://img.shields.io/badge/uv-managed-0E0E10?style=flat&labelColor=0E0E10&logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
 [![Ruff](https://img.shields.io/badge/ruff-checked-0E0E10?style=flat&labelColor=0E0E10&logo=ruff&logoColor=white)](https://docs.astral.sh/ruff/)
-[![Pyright](https://img.shields.io/badge/pyright-strict-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
+[![Pyright](https://img.shields.io/badge/pyright-checked-0E0E10?style=flat&labelColor=0E0E10)](https://microsoft.github.io/pyright/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-0E0E10?style=flat&labelColor=0E0E10&logo=pre-commit&logoColor=white)](.pre-commit-config.yaml)
 [![detect-secrets](https://img.shields.io/badge/detect--secrets-scanned-0E0E10?style=flat&labelColor=0E0E10)](https://github.com/Yelp/detect-secrets)
 [![Agent Engine](https://img.shields.io/badge/Vertex%20AI-Agent%20Engine-0E0E10?style=flat&labelColor=0E0E10&logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai/docs/agents/overview)
@@ -58,7 +58,7 @@ flowchart TD
     subgraph github["GitHub — no GCP credentials until the gate"]
         PR["pull request"] --> CHECKS["ci.yml · eval.yml · lint-pr.yml<br/>lint · types · tests · red-team"]
         CHECKS --> REVIEW{{"Review and merge<br/>— human approval —"}}
-        REVIEW -->|push to main| DEPLOY["deploy.yml"]
+        REVIEW -->|"push to main, CI green"| DEPLOY["deploy.yml"]
         SEC["security.yml<br/>CodeQL · pip-audit · secret scan"]
         DRIFT["cruft-check.yml<br/>template drift"]
     end
@@ -88,7 +88,7 @@ GCP credentials, and everything downstream runs as `agent-engine-sa`. See
 
 ### Prerequisites
 
-- Python {{cookiecutter.python_version}}+, [uv](https://docs.astral.sh/uv/), Node.js 20+
+- Python {{cookiecutter.python_version}}+, [uv](https://docs.astral.sh/uv/), Node.js 22+ (promptfoo requires it)
 - [gcloud CLI](https://cloud.google.com/sdk/docs/install) authenticated
 
 ### Local development
@@ -177,6 +177,9 @@ Set `MODEL_PROVIDER` in `.env`:
 | `anthropic` | Claude Opus 4.8 via LiteLLM |
 | `openai` | GPT-4o via LiteLLM |
 | `litellm` | Any model — set `LITELLM_MODEL` |
+
+Only `google` works on the deployed agent for now: the other providers' API keys are not forwarded
+to Agent Engine. See [Multi-provider model selection](AGENTS.md#multi-provider-model-selection).
 
 ## Logging and traces
 
