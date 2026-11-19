@@ -1,14 +1,9 @@
 {
-  "skipDangerousModePermissionPrompt": true,
   "autoCompactEnabled": true,
   "permissions": {
     "defaultMode": "auto",
-    "additionalDirectories": ["~/.claude"],
     "allow": [
-      "Bash(*)",
-      "Read(**)",
-      "Write(**)",
-      "Edit(**)"
+      "Read(**)"
     ],
     "deny": [
       "Read(.env)",
